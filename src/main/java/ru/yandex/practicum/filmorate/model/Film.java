@@ -13,17 +13,17 @@ import static ru.yandex.practicum.filmorate.validator.FilmValidator.MIN_RELEASE_
 
 @Data
 public class Film {
-    Long id;
+    private Long id;
 
     @NotBlank(message = "Название не может быть пустым")
-    String name;
+    private String name;
 
     @Size(max = MAX_DESCRIPTION_LENGTH, message = "Описание не может быть длиннее {max} символов")
-    String description;
+    private String description;
 
     @AfterSpecifiedDate(minDate = MIN_RELEASE_DATE_STR, message = "Дата релиза не может быть раньше {minDate}")
-    LocalDate releaseDate;
+    private LocalDate releaseDate;
 
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
-    Integer duration;
+    private Integer duration;
 }
