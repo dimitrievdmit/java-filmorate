@@ -44,3 +44,4 @@ build/
 
 *.db
 db/*
+/postman_test_collection.json
