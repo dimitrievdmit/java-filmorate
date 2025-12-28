@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.validator.FilmValidator;
+import ru.yandex.practicum.filmorate.validator.FilmValidatorConstants;
 import ru.yandex.practicum.filmorate.validator.annotation.AfterSpecifiedDate;
 
 import java.lang.annotation.Annotation;
@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static ru.yandex.practicum.filmorate.mock.MockFilms.*;
 
 class FilmTest {
 
@@ -31,12 +32,7 @@ class FilmTest {
 
     @Test
     void shouldNotHaveValidationErrors() {
-        Film film = new Film();
-        film.setId(1L);
-        film.setName("Inception");
-        film.setDescription("A mind-bending thriller");
-        film.setReleaseDate(LocalDate.of(2010, 7, 16));
-        film.setDuration(148);
+        Film film = getValidFilm(1L);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         // Проверяем, что сработало нужное кол-во аннотаций валидации
@@ -48,9 +44,9 @@ class FilmTest {
         Film film = new Film();
         film.setId(1L);
         film.setName(""); // Blank name
-        film.setDescription("A mind-bending thriller");
-        film.setReleaseDate(LocalDate.of(2010, 7, 16));
-        film.setDuration(148);
+        film.setDescription(VALID_DESCRIPTION);
+        film.setReleaseDate(VALID_RELEASE_DATE);
+        film.setDuration(VALID_DURATION);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         // Проверяем, что сработало нужное кол-во аннотаций валидации
@@ -69,11 +65,11 @@ class FilmTest {
     void shouldSucceedWhenDescriptionExactlyMaxLength() {
         Film film = new Film();
         film.setId(1L);
-        film.setName("Inception");
-        String tooLongDescription = "A".repeat(FilmValidator.MAX_DESCRIPTION_LENGTH);
+        film.setName(VALID_NAME);
+        String tooLongDescription = "A".repeat(FilmValidatorConstants.MAX_DESCRIPTION_LENGTH);
         film.setDescription(tooLongDescription); // Exceeds max length
-        film.setReleaseDate(LocalDate.of(2010, 7, 16));
-        film.setDuration(148);
+        film.setReleaseDate(VALID_RELEASE_DATE);
+        film.setDuration(VALID_DURATION);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         // Проверяем, что сработало нужное кол-во аннотаций валидации
@@ -84,11 +80,11 @@ class FilmTest {
     void shouldFailWhenDescriptionIsTooLong() {
         Film film = new Film();
         film.setId(1L);
-        film.setName("Inception");
-        String tooLongDescription = "A".repeat(FilmValidator.MAX_DESCRIPTION_LENGTH + 1);
+        film.setName(VALID_NAME);
+        String tooLongDescription = "A".repeat(FilmValidatorConstants.MAX_DESCRIPTION_LENGTH + 1);
         film.setDescription(tooLongDescription); // Exceeds max length
-        film.setReleaseDate(LocalDate.of(2010, 7, 16));
-        film.setDuration(148);
+        film.setReleaseDate(VALID_RELEASE_DATE);
+        film.setDuration(VALID_DURATION);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         // Проверяем, что сработало нужное кол-во аннотаций валидации
@@ -107,12 +103,12 @@ class FilmTest {
     void shouldFailWhenReleaseDateIsBeforeMinimum() {
         Film film = new Film();
         film.setId(1L);
-        film.setName("Inception");
-        film.setDescription("A mind-bending thriller");
+        film.setName(VALID_NAME);
+        film.setDescription(VALID_DESCRIPTION);
 
-        LocalDate beforeMinDate = FilmValidator.MIN_RELEASE_DATE.minusDays(1);
+        LocalDate beforeMinDate = FilmValidatorConstants.MIN_RELEASE_DATE.minusDays(1);
         film.setReleaseDate(beforeMinDate); // Before MIN_RELEASE_DATE
-        film.setDuration(148);
+        film.setDuration(VALID_DURATION);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         // Проверяем, что сработало нужное кол-во аннотаций валидации
@@ -131,9 +127,9 @@ class FilmTest {
     void shouldFailWhenDurationIsNegative() {
         Film film = new Film();
         film.setId(1L);
-        film.setName("Inception");
-        film.setDescription("A mind-bending thriller");
-        film.setReleaseDate(LocalDate.of(2010, 7, 16));
+        film.setName(VALID_NAME);
+        film.setDescription(VALID_DESCRIPTION);
+        film.setReleaseDate(VALID_RELEASE_DATE);
         film.setDuration(-150); // Negative duration
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -153,9 +149,9 @@ class FilmTest {
     void shouldFailWhenDurationIsZero() {
         Film film = new Film();
         film.setId(1L);
-        film.setName("Inception");
-        film.setDescription("A mind-bending thriller");
-        film.setReleaseDate(LocalDate.of(2010, 7, 16));
+        film.setName(VALID_NAME);
+        film.setDescription(VALID_DESCRIPTION);
+        film.setReleaseDate(VALID_RELEASE_DATE);
         film.setDuration(0); // Zero duration
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
