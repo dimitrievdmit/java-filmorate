@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.validator.IdValidator;
+import ru.yandex.practicum.filmorate.validator.Validator;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -25,18 +25,18 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Film createFilm(Film film) {
         log.info("Создание фильма {}", film.getName());
         // формируем дополнительные данные
-        log.debug("Формируем id фильма {}", film.getName());
+        log.info("Формируем id фильма {}", film.getName());
         film.setId(getNextId());
         // сохраняем в памяти приложения
-        log.debug("Сохраняем фильм {} в памяти приложения", film.getName());
+        log.info("Сохраняем фильм {} в памяти приложения", film.getName());
         films.put(film.getId(), film);
         return film;
     }
 
     @Override
     public Film getFilm(Long id) {
-        log.debug("Получение фильма по id {}", id);
-        IdValidator.validateId(id, "Id фильма должен быть указан");
+        log.info("Получение фильма по id {}", id);
+        Validator.validateId(id, "Id фильма должен быть указан");
         checkIfExists(id);
         return films.get(id);
     }
@@ -67,13 +67,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     private Film updateFilmFields(Film oldFilm, Film newFilm) {
-        log.trace("setName");
         oldFilm.setName(newFilm.getName());
-        log.trace("setDescription");
         oldFilm.setDescription(newFilm.getDescription());
-        log.trace("setReleaseDate");
         oldFilm.setReleaseDate(newFilm.getReleaseDate());
-        log.trace("setDuration");
         oldFilm.setDuration(newFilm.getDuration());
         return oldFilm;
     }

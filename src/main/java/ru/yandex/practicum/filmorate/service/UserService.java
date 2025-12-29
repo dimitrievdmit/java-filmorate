@@ -70,9 +70,9 @@ public class UserService {
         Set<Long> otherUserFriends = userStorage.getUser(otherId).getFriends();
 
         Set<Long> commonFriends = new HashSet<>(userFriends);
-        log.trace("Получение общих ИД пользователей {} и {}", id, otherId);
+        log.info("Получение общих ИД пользователей {} и {}", id, otherId);
         commonFriends.retainAll(otherUserFriends);
-        log.trace("Получение списка пользователей по списку общих ИД друзей {} и {}", id, otherId);
+        log.info("Получение списка пользователей по списку общих ИД друзей {} и {}", id, otherId);
         return commonFriends
                 .stream()
                 .map(userStorage::getUser)

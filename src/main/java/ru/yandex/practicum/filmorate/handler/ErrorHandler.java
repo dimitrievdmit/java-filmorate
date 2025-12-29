@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.handler;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -22,31 +23,27 @@ public class ErrorHandler {
      и более подходящих кодов ответов.
     */
 
-    @ExceptionHandler
+    @ExceptionHandler({ValidationException.class, MethodArgumentNotValidException.class, ConstraintViolationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidation(ValidationException e) {
-        log.warn("{}: {}", e.getClass(), e.getMessage());
-        return new ErrorResponse(e.getClass().toString(), e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
-        log.warn("{}: {}", e.getClass(), e.getMessage());
-        return new ErrorResponse(e.getClass().toString(), e.getMessage());
+    public ErrorResponse handleValidation(Exception e) {
+        ErrorResponse errorResponse = new ErrorResponse(String.format("Validation error: %s", e.getClass()), e.getMessage());
+        log.warn("{}", errorResponse);
+        return errorResponse;
     }
 
     @ExceptionHandler({NoSuchElementException.class, NotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFound(RuntimeException e) {
-        log.warn("{}: {}", e.getClass(), e.getMessage());
-        return new ErrorResponse(e.getClass().toString(), e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(String.format("Not Found: %s", e.getClass()), e.getMessage());
+        log.warn("{}", errorResponse);
+        return errorResponse;
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleOtherExceptions(RuntimeException e) {
-        log.warn("{}: {}", e.getClass(), e.getMessage());
-        return new ErrorResponse(e.getClass().toString(), e.getMessage());
+    public ErrorResponse handleOtherExceptions(Exception e) {
+        ErrorResponse errorResponse = new ErrorResponse(String.format("Server error: %s", e.getClass()), e.getMessage());
+        log.warn("{}", errorResponse);
+        return errorResponse;
     }
 }

@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-import static ru.yandex.practicum.filmorate.validator.UserValidator.LOGIN_REGEXP;
+import static ru.yandex.practicum.filmorate.validator.Validator.LOGIN_REGEXP;
 
 @Data
 @Slf4j
@@ -35,12 +35,12 @@ public class User {
     private Set<Long> friends = new HashSet<>();
 
     public void addFriend(Long id) {
-        log.trace("Добавить {} к друзьям {}", id, this.id);
+        log.info("Добавить {} к друзьям {}", id, this.id);
         friends.add(id);
     }
 
     public void removeFriend(Long id) {
-        log.trace("Удалить {} из друзей {}", id, this.id);
+        log.info("Удалить {} из друзей {}", id, this.id);
         friends.remove(id);
     }
 }

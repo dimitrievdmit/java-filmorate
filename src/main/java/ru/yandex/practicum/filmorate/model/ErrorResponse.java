@@ -1,13 +1,15 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
+@ToString
 public class ErrorResponse {
     // название ошибки
-    String error;
+    private final String error;
     // подробное описание
-    String description;
+    private final String description;
 
     public ErrorResponse(String error, String description) {
         this.error = error;

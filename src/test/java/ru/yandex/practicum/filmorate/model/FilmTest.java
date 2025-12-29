@@ -9,7 +9,6 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.validator.FilmValidatorConstants;
 import ru.yandex.practicum.filmorate.validator.annotation.AfterSpecifiedDate;
 
 import java.lang.annotation.Annotation;
@@ -66,7 +65,7 @@ class FilmTest {
         Film film = new Film();
         film.setId(1L);
         film.setName(VALID_NAME);
-        String tooLongDescription = "A".repeat(FilmValidatorConstants.MAX_DESCRIPTION_LENGTH);
+        String tooLongDescription = "A".repeat(ru.yandex.practicum.filmorate.validator.Validator.MAX_DESCRIPTION_LENGTH);
         film.setDescription(tooLongDescription); // Exceeds max length
         film.setReleaseDate(VALID_RELEASE_DATE);
         film.setDuration(VALID_DURATION);
@@ -81,7 +80,7 @@ class FilmTest {
         Film film = new Film();
         film.setId(1L);
         film.setName(VALID_NAME);
-        String tooLongDescription = "A".repeat(FilmValidatorConstants.MAX_DESCRIPTION_LENGTH + 1);
+        String tooLongDescription = "A".repeat(ru.yandex.practicum.filmorate.validator.Validator.MAX_DESCRIPTION_LENGTH + 1);
         film.setDescription(tooLongDescription); // Exceeds max length
         film.setReleaseDate(VALID_RELEASE_DATE);
         film.setDuration(VALID_DURATION);
@@ -106,7 +105,7 @@ class FilmTest {
         film.setName(VALID_NAME);
         film.setDescription(VALID_DESCRIPTION);
 
-        LocalDate beforeMinDate = FilmValidatorConstants.MIN_RELEASE_DATE.minusDays(1);
+        LocalDate beforeMinDate = ru.yandex.practicum.filmorate.validator.Validator.MIN_RELEASE_DATE.minusDays(1);
         film.setReleaseDate(beforeMinDate); // Before MIN_RELEASE_DATE
         film.setDuration(VALID_DURATION);
 

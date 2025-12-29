@@ -11,8 +11,8 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-import static ru.yandex.practicum.filmorate.validator.FilmValidatorConstants.MAX_DESCRIPTION_LENGTH;
-import static ru.yandex.practicum.filmorate.validator.FilmValidatorConstants.MIN_RELEASE_DATE_STR;
+import static ru.yandex.practicum.filmorate.validator.Validator.MAX_DESCRIPTION_LENGTH;
+import static ru.yandex.practicum.filmorate.validator.Validator.MIN_RELEASE_DATE_STR;
 
 @Data
 @Slf4j
@@ -34,12 +34,12 @@ public class Film {
     private Set<Long> likes = new HashSet<>();
 
     public void addLike(Long id) {
-        log.trace("Добавление пользователем {} лайка фильму {}", id, this.id);
+        log.info("Добавление пользователем {} лайка фильму {}", id, this.id);
         likes.add(id);
     }
 
     public void removeLike(Long id) {
-        log.trace("Удаление пользователем {} лайка фильму {}", id, this.id);
+        log.info("Удаление пользователем {} лайка фильму {}", id, this.id);
         likes.remove(id);
     }
 }

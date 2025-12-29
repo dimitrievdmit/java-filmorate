@@ -58,12 +58,11 @@ public class FilmService {
                 .stream()
                 .sorted(Comparator.comparing((Film film) -> film.getLikes().size()).reversed())
                 .limit(count)
-                .toList()
-                ;
+                .toList();
     }
 
     private void checkThatUserExists(Long userId) {
-        log.debug("Проверить, что пользователь существует.");
+        log.info("Проверить, что пользователь существует.");
         userService.getUser(userId);
     }
 }

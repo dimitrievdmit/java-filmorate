@@ -5,8 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.validator.IdValidator;
-import ru.yandex.practicum.filmorate.validator.UserValidator;
+import ru.yandex.practicum.filmorate.validator.Validator;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,20 +25,20 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User createUser(User user) {
         log.info("Создание пользователя {}", user.getLogin());
-        UserValidator.fillNameWithLoginIfEmpty(user);
+        Validator.fillNameWithLoginIfEmpty(user);
         // формируем дополнительные данные
-        log.debug("Формируем id пользователя {}", user.getLogin());
+        log.info("Формируем id пользователя {}", user.getLogin());
         user.setId(getNextId());
         // сохраняем в памяти приложения
-        log.debug("Сохраняем пользователя {} в памяти приложения", user.getLogin());
+        log.info("Сохраняем пользователя {} в памяти приложения", user.getLogin());
         users.put(user.getId(), user);
         return user;
     }
 
     @Override
     public User getUser(Long id) {
-        log.debug("Получение пользователя по id {}", id);
-        IdValidator.validateId(id, "Id пользователя должен быть указан");
+        log.info("Получение пользователя по id {}", id);
+        Validator.validateId(id, "Id пользователя должен быть указан");
         checkIfExists(id);
         return users.get(id);
     }
@@ -47,7 +46,7 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User updateUser(User newUser) {
         log.info("Обновление пользователя {}", newUser.getLogin());
-        UserValidator.fillNameWithLoginIfEmpty(newUser);
+        Validator.fillNameWithLoginIfEmpty(newUser);
         User oldUser = getUser(newUser.getId());
         return updateUserFields(oldUser, newUser);
     }
@@ -69,13 +68,9 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     private User updateUserFields(User oldUser, User newUser) {
-        log.trace("setEmail");
         oldUser.setEmail(newUser.getEmail());
-        log.trace("setLogin");
         oldUser.setLogin(newUser.getLogin());
-        log.trace("setName");
         oldUser.setName(newUser.getName());
-        log.trace("setBirthday");
         oldUser.setBirthday(newUser.getBirthday());
         return oldUser;
     }
