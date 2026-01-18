@@ -12,22 +12,15 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
-import java.time.LocalDate;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static ru.yandex.practicum.filmorate.mock.MockUsers.*;
 
 
 class UserTest {
 
     private static Validator validator;
-    private static final String VALID_EMAIL = "test@example.com";
-    private static final String INVALID_EMAIL = "test.com";
-    private static final String VALID_LOGIN = "validLogin";
-    private static final String INVALID_LOGIN = "invalid login";
-    private static final String VALID_NAME = "Valid Name";
-    private static final LocalDate VALID_BIRTHDAY = LocalDate.now().minusYears(20);
-    private static final LocalDate FUTURE_BIRTHDAY = LocalDate.now().plusDays(1);
 
 
     @BeforeAll
@@ -39,11 +32,7 @@ class UserTest {
 
     @Test
     public void shouldNotHaveValidationErrors() {
-        User user = new User();
-        user.setEmail(VALID_EMAIL);
-        user.setLogin(VALID_LOGIN);
-        user.setName(VALID_NAME);
-        user.setBirthday(VALID_BIRTHDAY);
+        User user = getValidUser();
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         // Проверяем, что сработало нужное кол-во аннотаций валидации
