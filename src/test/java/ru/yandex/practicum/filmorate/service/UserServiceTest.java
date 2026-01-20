@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import ru.yandex.practicum.filmorate.enums.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -79,8 +80,8 @@ class UserServiceTest {
 
         User result = userService.userAddFriend(1L, 2L);
 
-        assertTrue(user.getFriends().contains(2L));
-        assertTrue(friend.getFriends().contains(1L));
+        assertTrue(user.getFriends().containsKey(2L));
+        assertTrue(friend.getFriends().containsKey(1L));
         assertEquals(user, result);
     }
 
@@ -88,21 +89,21 @@ class UserServiceTest {
     void shouldDeleteFriend() {
         User user = getValidUser(1L);
         User friend = getValidUser(2L);
-        user.addFriend(2L);
-        friend.addFriend(1L);
+        user.addFriend(2L, FriendshipStatus.CONFIRMED);
+        friend.addFriend(1L, FriendshipStatus.CONFIRMED);
         when(userStorage.getUser(1L)).thenReturn(user);
         when(userStorage.getUser(2L)).thenReturn(friend);
 
         userService.userDeleteFriend(1L, 2L);
 
-        assertFalse(user.getFriends().contains(2L));
-        assertFalse(friend.getFriends().contains(1L));
+        assertFalse(user.getFriends().containsKey(2L));
+        assertFalse(friend.getFriends().containsKey(1L));
     }
 
     @Test
     void shouldGetUserFriends() {
         User user = getValidUser(1L);
-        user.addFriend(2L);
+        user.addFriend(2L, FriendshipStatus.CONFIRMED);
         User friend = getValidUser(2L);
         when(userStorage.getUser(1L)).thenReturn(user);
         when(userStorage.getUser(2L)).thenReturn(friend);
@@ -117,8 +118,8 @@ class UserServiceTest {
         User user1 = getValidUser(1L);
         User user2 = getValidUser(2L);
         User commonFriend = getValidUser(3L);
-        user1.addFriend(3L);
-        user2.addFriend(3L);
+        user1.addFriend(3L, FriendshipStatus.CONFIRMED);
+        user2.addFriend(3L, FriendshipStatus.CONFIRMED);
         when(userStorage.getUser(1L)).thenReturn(user1);
         when(userStorage.getUser(2L)).thenReturn(user2);
         when(userStorage.getUser(3L)).thenReturn(commonFriend);

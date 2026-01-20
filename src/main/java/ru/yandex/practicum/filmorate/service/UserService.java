@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.enums.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -42,8 +43,15 @@ public class UserService {
         User user = userStorage.getUser(id);
         User friend = userStorage.getUser(friendId);
 
-        user.addFriend(friendId);
-        friend.addFriend(id);
+        if (user.getFriendshipStatus(friendId) == FriendshipStatus.UNCONFIRMED) {
+            log.info("Подтверждение пользователем {} дружбы с пользователем {}", id, friendId);
+        }
+        user.addFriend(friendId, FriendshipStatus.CONFIRMED);
+
+        if (friend.getFriendshipStatus(id) == null) {
+            log.info("Приглашение пользователя {} в друзья к {}", friendId, id);
+            friend.addFriend(id, FriendshipStatus.UNCONFIRMED);
+        }
         return user;
     }
 
@@ -58,7 +66,7 @@ public class UserService {
 
     public Collection<User> userGetFriends(Long id) {
         log.info("Получение друзей пользователя {}", id);
-        return userStorage.getUser(id).getFriends()
+        return userStorage.getUser(id).getFriends().keySet()
                 .stream()
                 .map(userStorage::getUser)
                 .toList();
@@ -66,8 +74,8 @@ public class UserService {
 
     public Collection<User> usersGetCommonFriends(Long id, Long otherId) {
         log.info("Получение общих друзей для пользователей {} и {}", id, otherId);
-        Set<Long> userFriends = userStorage.getUser(id).getFriends();
-        Set<Long> otherUserFriends = userStorage.getUser(otherId).getFriends();
+        Set<Long> userFriends = userStorage.getUser(id).getFriends().keySet();
+        Set<Long> otherUserFriends = userStorage.getUser(otherId).getFriends().keySet();
 
         Set<Long> commonFriends = new HashSet<>(userFriends);
         log.info("Получение общих ИД пользователей {} и {}", id, otherId);

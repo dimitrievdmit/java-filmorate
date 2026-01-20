@@ -6,9 +6,12 @@ import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import ru.yandex.practicum.filmorate.enums.FriendshipStatus;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static ru.yandex.practicum.filmorate.validator.Validator.LOGIN_REGEXP;
@@ -32,15 +35,22 @@ public class User {
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
 
-    private Set<Long> friends = new HashSet<>();
+    private Map<Long, FriendshipStatus> friends = new HashMap<>();
 
-    public void addFriend(Long id) {
-        log.info("Добавить {} к друзьям {}", id, this.id);
-        friends.add(id);
+    private Set<Long> unconfirmedFriends = new HashSet<>();
+
+    public void addFriend(Long id, FriendshipStatus status) {
+        log.info("Добавить {} к друзьям {} со статусом {}", id, this.id, status);
+        friends.put(id, status);
     }
 
     public void removeFriend(Long id) {
         log.info("Удалить {} из друзей {}", id, this.id);
         friends.remove(id);
+    }
+
+    public FriendshipStatus getFriendshipStatus(Long id) {
+        log.info("Получить статус дружбы пользователя {} с пользователем {}", id, this.id);
+        return friends.get(id);
     }
 }
