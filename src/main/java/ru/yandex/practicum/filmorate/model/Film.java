@@ -33,7 +33,7 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     private Integer duration;
 
-    private FilmGenre genre;
+    private Set<FilmGenre> genres;
 
     private FilmRating rating;
 

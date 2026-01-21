@@ -24,10 +24,6 @@
 - **`duration`** — длительность фильма в минутах.  
   Тип: `integer` (целочисленный).
 
-- **`genre_id`** — ссылка на жанр фильма.  
-  Тип: `integer` (целочисленный).  
-  Связь: внешний ключ к таблице `film_genre` (`id`).
-
 - **`rating_id`** — ссылка на рейтинг фильма.  
   Тип: `integer` (целочисленный).  
   Связь: внешний ключ к таблице `film_rating` (`id`).
@@ -42,7 +38,17 @@
   Тип: `integer` (целочисленный).  
   Связь: внешний ключ к таблице `users` (`id`).
 
-## Таблица `film_genre` (Жанры фильмов)
+## Таблица `film_genres` (Жанры фильмов)
+
+- **`film_id`** — идентификатор фильма.  
+  Тип: `integer` (целочисленный).
+  Связь: внешний ключ к таблице `films` (`id`).
+
+- **`genre_id`** — ссылка на жанр фильма.
+  Тип: `integer` (целочисленный).
+  Связь: внешний ключ к таблице `genres` (`id`).
+
+## Таблица `genres` (Жанры)
 
 - **`id`** — уникальный идентификатор жанра.  
   Тип: `integer` (целочисленный).  
@@ -145,7 +151,7 @@
 
 ##### Запросы для операций с фильмами
 
-- Получение всех фильмов. Вместе с данными о лайках.
+- Получение всех фильмов. Вместе с данными о лайках и жанрах.
 
 ```sql
 SELECT f.id, 
@@ -153,17 +159,18 @@ SELECT f.id,
        f.description, 
        f.releaseDate, 
        f.duration, 
-       fg.name AS genre, 
+       array_agg(g.name) AS genres,
        fr.name AS rating, 
        array_agg(fl.user_id) AS likes
 FROM films f
 JOIN film_likes fl ON f.id=fl.film_id
-JOIN film_genre fg ON f.genre_id=fg.id
+JOIN film_genres fg ON f.id=fg.film_id
+JOIN genres g ON fg ON fg.genre_id=g.id
 JOIN film_rating fr ON f.rating_id=fr.id
 GROUP BY f.id;
 ```
 
-- Получение фильма по ИД. Вместе с данными о лайках.
+- Получение фильма по ИД. Вместе с данными о лайках и жанрах.
 
 ```sql
 SELECT f.id, 
@@ -171,12 +178,13 @@ SELECT f.id,
        f.description, 
        f.releaseDate, 
        f.duration, 
-       fg.name AS genre, 
+       array_agg(g.name) AS genres,
        fr.name AS rating, 
        array_agg(fl.user_id) AS likes
 FROM films f
 JOIN film_likes fl ON f.id=fl.film_id
-JOIN film_genre fg ON f.genre_id=fg.id
+JOIN film_genres fg ON f.id=fg.film_id
+JOIN genres g ON fg ON fg.genre_id=g.id
 JOIN film_rating fr ON f.rating_id=fr.id
 WHERE f.id = <filmId>
 GROUP BY f.id;
@@ -185,14 +193,13 @@ GROUP BY f.id;
 - Создать фильм.
 
 ```sql
-INSERT INTO films (id, name, description, releaseDate, duration, genre_id, rating_id)
+INSERT INTO films (id, name, description, releaseDate, duration, rating_id)
 VALUES (
         <idValue>, 
         <nameValue>, 
         <descriptionValue>, 
         <releaseDateValue>, 
-        <durationValue>, 
-        <genreIdValue>, 
+        <durationValue>,
         <ratingIdValue>
 );
 ```
@@ -204,8 +211,7 @@ UPDATE films
 SET name = <nameValue>
     description = <descriptionValue>
     release_date = <releaseDateValue>
-    duration = <durationValue> 
-    genre_id = <genreIdValue> 
+    duration = <durationValue>
     rating_id = <ratingIdValue>
 WHERE id = <idValue>;
 ```
@@ -224,6 +230,13 @@ DELETE FROM film_likes
 WHERE film_id = <idValue>;
 ```
 
+- Удалить все жанры фильма. Используется при удалении фильма.
+
+```sql
+DELETE FROM film_genres
+WHERE film_id = <idValue>;
+```
+
 - Добавить лайк к фильму.
 
 ```sql
@@ -231,6 +244,16 @@ INSERT INTO film_likes (film_id, user_id)
 VALUES (
         <filmIdValue>, 
         <userIdValue>
+);
+```
+
+- Добавить жанр к фильму.
+
+```sql
+INSERT INTO film_genres (film_id, genre_id)
+VALUES (
+        <filmIdValue>, 
+        <genreIdValue>
 );
 ```
 
@@ -242,12 +265,30 @@ WHERE film_id = <filmIdValue>
       AND user_id = <userIdValue>;
 ```
 
-- Получить топ n популярных фильмов. Вместе с информацией по лайкам.
+- Удалить жанр фильма.
 
 ```sql
-SELECT f.*, array_agg(fl.user_id) AS likes
+DELETE FROM film_genres
+WHERE film_id = <filmIdValue>
+      AND genre_id = <genreIdValue>;
+```
+
+- Получить топ n популярных фильмов. Вместе с информацией по лайкам и жанрам.
+
+```sql
+SELECT f.id, 
+       f.name, 
+       f.description, 
+       f.releaseDate, 
+       f.duration, 
+       array_agg(g.name) AS genres,
+       fr.name AS rating, 
+       array_agg(fl.user_id) AS likes
 FROM films f
 JOIN film_likes fl ON f.id=fl.film_id
+JOIN film_genres fg ON f.id=fg.film_id
+JOIN genres g ON fg ON fg.genre_id=g.id
+JOIN film_rating fr ON f.rating_id=fr.id
 WHERE f.id IN (
    SELECT film_id
    FROM film_likes
