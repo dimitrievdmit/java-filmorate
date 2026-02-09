@@ -1,21 +1,31 @@
 package ru.yandex.practicum.filmorate.service;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.dal.FilmStorage;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.validator.Validator;
 
 import java.util.Collection;
-import java.util.Comparator;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserService userService;
+    private final GenreService genreService;
+
+    public FilmService(
+            FilmStorage filmStorage,
+            UserService userService,
+            GenreService genreService
+    ) {
+        this.filmStorage = filmStorage;
+        this.userService = userService;
+        this.genreService = genreService;
+    }
 
     public Collection<Film> getAllFilms() {
         return filmStorage.getAllFilms();
@@ -26,43 +36,63 @@ public class FilmService {
     }
 
     public Film getFilm(Long id) {
+        log.info("Получение фильма по id {}", id);
+        Validator.validateId(id, "Id фильма должен быть указан");
+        checkThatFilmExists(id);
         return filmStorage.getFilm(id);
     }
 
     public Film updateFilm(@Valid Film newFilm) {
+        checkThatFilmExists(newFilm.getId());
         return filmStorage.updateFilm(newFilm);
     }
 
     public void deleteFilm(Long id) {
+        log.info("Удаление фильма по id {}", id);
+        Film film = getFilm(id);
+        log.info("Удаление фильма {}", film.getName());
         filmStorage.deleteFilm(id);
     }
 
     public Film filmAddLike(Long id, Long userId) {
         log.info("Добавление лайка фильму {} пользователем {}", id, userId);
-        Film film = filmStorage.getFilm(id);
-        checkThatUserExists(userId);
-        film.addLike(userId);
-        return film;
+        checkThatFilmExists(id);
+        userService.checkThatUserExists(userId);
+        return filmStorage.filmAddLike(id, userId);
     }
 
-    public void filmDeleteLike(Long id, Long userId) {
+    public Film filmDeleteLike(Long id, Long userId) {
         log.info("Удаление лайка фильму {} пользователем {}", id, userId);
-        Film film = filmStorage.getFilm(id);
-        checkThatUserExists(userId);
-        film.removeLike(userId);
+        checkThatFilmExists(id);
+        userService.checkThatUserExists(userId);
+        return filmStorage.removeLike(id, userId);
+    }
+
+    public Film filmAddGenre(Long id, Integer genreId) {
+        log.info("Добавление жанра {} фильму {}", genreId, id);
+        checkThatFilmExists(id);
+        genreService.getGenre(genreId);
+        return filmStorage.filmAddGenre(id, genreId);
+    }
+
+    public Film filmDeleteGenre(Long id, Integer genreId) {
+        log.info("Удаление жанра {} из фильма {}", genreId, id);
+        checkThatFilmExists(id);
+        genreService.getGenre(genreId);
+        return filmStorage.removeGenre(id, genreId);
     }
 
     public Collection<Film> getPopularFilms(Long count) {
         log.info("Получение первых {} фильмов по количеству лайков", count);
-        return filmStorage.getAllFilms()
-                .stream()
-                .sorted(Comparator.comparing((Film film) -> film.getLikes().size()).reversed())
-                .limit(count)
-                .toList();
+        return filmStorage.getPopularFilms(count);
     }
 
-    private void checkThatUserExists(Long userId) {
-        log.info("Проверить, что пользователь существует.");
-        userService.getUser(userId);
+    private void checkThatFilmExists(Long id) {
+        log.info("Проверить, что фильм существует.");
+        if (filmStorage.checkIfNotExists(id)) {
+            String errText = "Фильм с id = " + id + " не найден";
+            log.error("Ошибка: {}", errText);
+            throw new NotFoundException(errText);
+        }
     }
 }

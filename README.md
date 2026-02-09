@@ -151,49 +151,74 @@
 
 ##### Запросы для операций с фильмами
 
-- Получение всех фильмов. Вместе с данными о лайках и жанрах.
+- Получение всех фильмов. Данные о лайках и жанрах получаются отдельными запросами.
 
 ```sql
-SELECT f.id, 
-       f.name, 
-       f.description, 
-       f.releaseDate, 
-       f.duration, 
-       array_agg(g.name) AS genres,
-       fr.name AS rating, 
-       array_agg(fl.user_id) AS likes
-FROM films f
-JOIN film_likes fl ON f.id=fl.film_id
-JOIN film_genres fg ON f.id=fg.film_id
-JOIN genres g ON fg ON fg.genre_id=g.id
-JOIN film_rating fr ON f.rating_id=fr.id
-GROUP BY f.id;
+SELECT
+    f.id,
+    f.name,
+    f.description,
+    f.release_date,
+    f.duration,
+    f.rating_id
+FROM films f;
 ```
 
-- Получение фильма по ИД. Вместе с данными о лайках и жанрах.
+- Получение фильма по ИД. Данные о лайках и жанрах получаются отдельными запросами.
 
 ```sql
-SELECT f.id, 
-       f.name, 
-       f.description, 
-       f.releaseDate, 
-       f.duration, 
-       array_agg(g.name) AS genres,
-       fr.name AS rating, 
-       array_agg(fl.user_id) AS likes
+SELECT
+    f.id,
+    f.name,
+    f.description,
+    f.release_date,
+    f.duration,
+    f.rating_id
 FROM films f
-JOIN film_likes fl ON f.id=fl.film_id
-JOIN film_genres fg ON f.id=fg.film_id
-JOIN genres g ON fg ON fg.genre_id=g.id
-JOIN film_rating fr ON f.rating_id=fr.id
-WHERE f.id = <filmId>
-GROUP BY f.id;
+WHERE f.id = :id;
+```
+
+- Получить топ n популярных фильмов. Данные о лайках и жанрах получаются отдельными запросами.
+
+```sql
+SELECT
+    f.id,
+    f.name,
+    f.description,
+    f.release_date,
+    f.duration,
+    f.rating_id
+FROM films f
+LEFT JOIN film_likes fl ON f.id = fl.film_id
+GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.rating_id
+ORDER BY COUNT(fl.user_id) DESC
+LIMIT :count;
+```
+
+- Получение жанров фильмов.
+
+```sql
+SELECT
+    fg.film_id,
+    fg.genre_id
+FROM film_genres fg
+WHERE fg.film_id IN (:filmIds);
+```
+
+- Получение лайков фильмов.
+
+```sql
+SELECT
+    fl.film_id,
+    fl.user_id
+FROM film_likes fl
+WHERE fl.film_id IN (:filmIds);
 ```
 
 - Создать фильм.
 
 ```sql
-INSERT INTO films (id, name, description, releaseDate, duration, rating_id)
+INSERT INTO films (name, description, releaseDate, duration, rating_id)
 VALUES (
         <idValue>, 
         <nameValue>, 
@@ -216,25 +241,10 @@ SET name = <nameValue>
 WHERE id = <idValue>;
 ```
 
-- Удалить фильм.
+- Удалить фильм. Т. к. таблицы созданы с ON DELETE CASCADE, то информация о лайках и жанрах фильма так же удалится.
 
 ```sql
-DELETE FROM films
-WHERE id = <idValue>;
-```
-
-- Удалить все лайки фильма. Используется при удалении фильма.
-
-```sql
-DELETE FROM film_likes
-WHERE film_id = <idValue>;
-```
-
-- Удалить все жанры фильма. Используется при удалении фильма.
-
-```sql
-DELETE FROM film_genres
-WHERE film_id = <idValue>;
+DELETE FROM films WHERE id = <idValue>;
 ```
 
 - Добавить лайк к фильму.
@@ -271,31 +281,6 @@ WHERE film_id = <filmIdValue>
 DELETE FROM film_genres
 WHERE film_id = <filmIdValue>
       AND genre_id = <genreIdValue>;
-```
-
-- Получить топ n популярных фильмов. Вместе с информацией по лайкам и жанрам.
-
-```sql
-SELECT f.id, 
-       f.name, 
-       f.description, 
-       f.releaseDate, 
-       f.duration, 
-       array_agg(g.name) AS genres,
-       fr.name AS rating, 
-       array_agg(fl.user_id) AS likes
-FROM films f
-JOIN film_likes fl ON f.id=fl.film_id
-JOIN film_genres fg ON f.id=fg.film_id
-JOIN genres g ON fg ON fg.genre_id=g.id
-JOIN film_rating fr ON f.rating_id=fr.id
-WHERE f.id IN (
-   SELECT film_id
-   FROM film_likes
-   ORDER BY COUNT(user_id) DESC
-   LIMIT <n>
-) top
-GROUP BY f.id;
 ```
 
 ##### Запросы для операций с пользователями

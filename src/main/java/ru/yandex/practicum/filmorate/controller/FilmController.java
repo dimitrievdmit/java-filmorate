@@ -7,7 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
+import ru.yandex.practicum.filmorate.dto.FilmReceiveDTO;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -22,24 +24,27 @@ public class FilmController {
     private final FilmService filmService;
 
     @GetMapping
-    public Collection<Film> getAllFilms() {
-        return filmService.getAllFilms();
-    }
-
-    @GetMapping("/{id}")
-    public Film getFilm(@PathVariable Long id) {
-        return filmService.getFilm(id);
+    public Collection<FilmSendDTO> getAllFilms() {
+        return filmService.getAllFilms()
+                .stream()
+                .map(FilmMapper::mapToSendDTO)
+                .toList();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Film createFilm(@Valid @RequestBody Film film) {
-        return filmService.createFilm(film);
+    public FilmSendDTO createFilm(@Valid @RequestBody FilmReceiveDTO film) {
+        return FilmMapper.mapToSendDTO(filmService.createFilm(FilmMapper.mapToDomain(film)));
+    }
+
+    @GetMapping("/{id}")
+    public FilmSendDTO getFilm(@PathVariable Long id) {
+        return FilmMapper.mapToSendDTO((filmService.getFilm(id)));
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film newFilm) {
-        return filmService.updateFilm(newFilm);
+    public FilmSendDTO updateFilm(@Valid @RequestBody FilmReceiveDTO newFilm) {
+        return FilmMapper.mapToSendDTO(filmService.updateFilm(FilmMapper.mapToDomain(newFilm)));
     }
 
     @DeleteMapping("/{id}")
@@ -49,22 +54,36 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public Film filmAddLike(@PathVariable Long id, @PathVariable Long userId) {
-        return filmService.filmAddLike(id, userId);
+    public FilmSendDTO filmAddLike(@PathVariable Long id, @PathVariable Long userId) {
+        return FilmMapper.mapToSendDTO(filmService.filmAddLike(id, userId));
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void filmDeleteLike(@PathVariable Long id, @PathVariable Long userId) {
-        filmService.filmDeleteLike(id, userId);
+    public FilmSendDTO filmDeleteLike(@PathVariable Long id, @PathVariable Long userId) {
+        return FilmMapper.mapToSendDTO(filmService.filmDeleteLike(id, userId));
+    }
+
+    @PutMapping("/{id}/genre/{genreId}")
+    public FilmSendDTO filmAddGenre(@PathVariable Long id, @PathVariable Integer genreId) {
+        return FilmMapper.mapToSendDTO(filmService.filmAddGenre(id, genreId));
+    }
+
+    @DeleteMapping("/{id}/genre/{genreId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public FilmSendDTO filmDeleteGenre(@PathVariable Long id, @PathVariable Integer genreId) {
+        return FilmMapper.mapToSendDTO(filmService.filmDeleteGenre(id, genreId));
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getPopularFilms(
+    public Collection<FilmSendDTO> getPopularFilms(
             @RequestParam(defaultValue = "10L")
             @Positive(message = "Параметр должен быть положительным числом")
             Long count
     ) {
-        return filmService.getPopularFilms(count);
+        return filmService.getPopularFilms(count)
+                .stream()
+                .map(FilmMapper::mapToSendDTO)
+                .toList();
     }
 }

@@ -1,18 +1,20 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.dal;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.enums.FilmGenre;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.validator.Validator;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings("unused")
 @Component
 @Slf4j
+@Profile("inmemory")  // аннотация @Qualifier в сервисах мешала настроить тесты сразу на обе реализации
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> films = new HashMap<>();
 
@@ -35,9 +37,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film getFilm(Long id) {
-        log.info("Получение фильма по id {}", id);
-        Validator.validateId(id, "Id фильма должен быть указан");
-        checkIfExists(id);
         return films.get(id);
     }
 
@@ -52,18 +51,49 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void deleteFilm(Long id) {
-        log.info("Удаление фильма по id {}", id);
-        Film film = getFilm(id);
-        log.info("Удаление фильма {}", film.getName());
         films.remove(id);
     }
 
-    private void checkIfExists(long id) {
-        if (!films.containsKey(id)) {
-            String errText = "Фильм с id = " + id + " не найден";
-            log.error("Ошибка: {}", errText);
-            throw new NotFoundException(errText);
-        }
+    @Override
+    public Film filmAddLike(Long id, Long userId) {
+        Film film = getFilm(id);
+        film.addLike(userId);
+        return film;
+    }
+
+    @Override
+    public Film removeLike(Long id, Long userId) {
+        Film film = getFilm(id);
+        film.removeLike(userId);
+        return film;
+    }
+
+    @Override
+    public Film filmAddGenre(Long id, Integer genreId) {
+        Film film = getFilm(id);
+        film.addGenre(FilmGenre.fromId(genreId));
+        return film;
+    }
+
+    @Override
+    public Film removeGenre(Long id, Integer genreId) {
+        Film film = getFilm(id);
+        film.removeGenre(FilmGenre.fromId(genreId));
+        return film;
+    }
+
+    @Override
+    public Collection<Film> getPopularFilms(Long count) {
+        return getAllFilms()
+                .stream()
+                .sorted(Comparator.comparing((Film film) -> film.getLikes().size()).reversed())
+                .limit(count)
+                .toList();
+    }
+
+    @Override
+    public boolean checkIfNotExists(Long id) {
+        return !films.containsKey(id);
     }
 
     private Film updateFilmFields(Film oldFilm, Film newFilm) {

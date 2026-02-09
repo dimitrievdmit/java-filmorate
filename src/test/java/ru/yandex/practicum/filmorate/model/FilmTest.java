@@ -129,7 +129,7 @@ class FilmTest {
         film.setName(VALID_NAME);
         film.setDescription(VALID_DESCRIPTION);
         film.setReleaseDate(VALID_RELEASE_DATE);
-        film.setDuration(-150); // Negative duration
+        film.setDuration(-150L); // Negative duration
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         // Проверяем, что сработало нужное кол-во аннотаций валидации
@@ -151,7 +151,7 @@ class FilmTest {
         film.setName(VALID_NAME);
         film.setDescription(VALID_DESCRIPTION);
         film.setReleaseDate(VALID_RELEASE_DATE);
-        film.setDuration(0); // Zero duration
+        film.setDuration(0L); // Zero duration
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         // Проверяем, что сработало нужное кол-во аннотаций валидации
