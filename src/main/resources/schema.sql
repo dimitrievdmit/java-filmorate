@@ -1,0 +1,55 @@
+CREATE TABLE IF NOT EXISTS film_rating (
+    id SMALLINT PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS films (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description VARCHAR(200),
+    release_date TIMESTAMP WITH TIME ZONE,
+    duration BIGINT,
+    rating_id SMALLINT REFERENCES film_rating(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS genres (
+    id SMALLINT PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS film_genres (
+    film_id BIGINT NOT NULL REFERENCES films(id) ON DELETE CASCADE,
+    genre_id SMALLINT NOT NULL REFERENCES genres(id) ON DELETE CASCADE,
+    PRIMARY KEY (film_id, genre_id)
+);
+CREATE INDEX IF NOT EXISTS idx_film_genres_film_id ON film_genres(film_id);
+CREATE INDEX IF NOT EXISTS idx_film_genres_genre_id ON film_genres(genre_id);
+
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    login VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
+    birthday DATE
+);
+
+CREATE TABLE IF NOT EXISTS friend_status (
+    id SMALLINT PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS friends (
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    friend_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status_id SMALLINT NOT NULL REFERENCES friend_status(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, friend_id)
+);
+CREATE INDEX IF NOT EXISTS idx_friends_user_id ON friends(user_id);
+CREATE INDEX IF NOT EXISTS idx_friends_friend_id ON friends(friend_id);
+
+CREATE TABLE IF NOT EXISTS film_likes (
+    film_id BIGINT NOT NULL REFERENCES films(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    PRIMARY KEY (film_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_film_likes_film_id ON film_likes(film_id);

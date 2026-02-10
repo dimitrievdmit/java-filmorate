@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.dto.UserReceiveDTO;
+import ru.yandex.practicum.filmorate.dto.UserSendDTO;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
@@ -19,24 +21,27 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public Collection<User> getAllUsers() {
-        return userService.getAllUsers();
-    }
-
-    @GetMapping("/{id}")
-    public User getUser(@PathVariable Long id) {
-        return userService.getUser(id);
+    public Collection<UserSendDTO> getAllUsers() {
+        return userService.getAllUsers()
+                .stream()
+                .map(UserMapper::mapToSendDTO)
+                .toList();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public User createUser(@Valid @RequestBody User user) {
-        return userService.createUser(user);
+    public UserSendDTO createUser(@Valid @RequestBody UserReceiveDTO user) {
+        return UserMapper.mapToSendDTO(userService.createUser(UserMapper.mapReceiveToDomain(user)));
+    }
+
+    @GetMapping("/{id}")
+    public UserSendDTO getUser(@PathVariable Long id) {
+        return UserMapper.mapToSendDTO(userService.getUser(id));
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User newUser) {
-        return userService.updateUser(newUser);
+    public UserSendDTO updateUser(@Valid @RequestBody UserReceiveDTO newUser) {
+        return UserMapper.mapToSendDTO(userService.updateUser(UserMapper.mapReceiveToDomain(newUser)));
     }
 
     @DeleteMapping("/{id}")
@@ -46,8 +51,8 @@ public class UserController {
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public User userAddFriend(@PathVariable Long id, @PathVariable Long friendId) {
-        return userService.userAddFriend(id, friendId);
+    public void userAddFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        userService.userAddFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
@@ -57,12 +62,18 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public Collection<User> userGetFriends(@PathVariable Long id) {
-        return userService.userGetFriends(id);
+    public Collection<UserSendDTO> userGetFriends(@PathVariable Long id) {
+        return userService.userGetFriends(id)
+                .stream()
+                .map(UserMapper::mapToSendDTO)
+                .toList();
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public Collection<User> usersGetCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
-        return userService.usersGetCommonFriends(id, otherId);
+    public Collection<UserSendDTO> usersGetCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
+        return userService.usersGetCommonFriends(id, otherId)
+                .stream()
+                .map(UserMapper::mapToSendDTO)
+                .toList();
     }
 }

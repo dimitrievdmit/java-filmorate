@@ -14,7 +14,7 @@ public class Validator {
     public static final String MIN_RELEASE_DATE_STR = "1895-12-28";
     public static final LocalDate MIN_RELEASE_DATE = LocalDate.parse(MIN_RELEASE_DATE_STR);
 
-    public static void validateId(Long id, String message) {
+    public static void validateId(Number id, String message) {
         if (id == null) {
             log.error("Ошибка: {}", message);
             throw new ValidationException(message);

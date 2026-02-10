@@ -1,9 +1,9 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.dal;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.enums.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.validator.Validator;
 
@@ -14,10 +14,11 @@ import java.util.Map;
 @SuppressWarnings("unused")
 @Component
 @Slf4j
+@Profile("inmemory")  // аннотация @Qualifier в сервисах мешала настроить тесты сразу на обе реализации
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> users = new HashMap<>();
 
-    @GetMapping
+    @Override
     public Collection<User> getAllUsers() {
         return users.values();
     }
@@ -37,34 +38,39 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User getUser(Long id) {
-        log.info("Получение пользователя по id {}", id);
-        Validator.validateId(id, "Id пользователя должен быть указан");
-        checkIfExists(id);
         return users.get(id);
     }
 
     @Override
     public User updateUser(User newUser) {
-        log.info("Обновление пользователя {}", newUser.getLogin());
-        Validator.fillNameWithLoginIfEmpty(newUser);
         User oldUser = getUser(newUser.getId());
         return updateUserFields(oldUser, newUser);
     }
 
     @Override
     public void deleteUser(Long id) {
-        log.info("Удаление пользователя по id {}", id);
-        User user = getUser(id);
-        log.info("Удаление пользователя {}", user.getName());
         users.remove(id);
     }
 
-    private void checkIfExists(long id) {
-        if (!users.containsKey(id)) {
-            String errText = "Пользователь с id = " + id + " не найден";
-            log.error("Ошибка: {}", errText);
-            throw new NotFoundException(errText);
-        }
+    @Override
+    public boolean checkIfNotExists(Long id) {
+        return !users.containsKey(id);
+    }
+
+    @Override
+    public void userAddUnconfirmedFriend(Long id, Long friendId) {
+        getUser(id).addFriend(friendId, FriendshipStatus.UNCONFIRMED);
+    }
+
+    @Override
+    public void confirmFriendship(Long id, Long friendId) {
+        getUser(id).addFriend(friendId, FriendshipStatus.CONFIRMED);
+        getUser(friendId).addFriend(id, FriendshipStatus.CONFIRMED);
+    }
+
+    @Override
+    public void userDeleteFriend(Long id, Long friendId) {
+        getUser(id).removeFriend(friendId);
     }
 
     private User updateUserFields(User oldUser, User newUser) {
