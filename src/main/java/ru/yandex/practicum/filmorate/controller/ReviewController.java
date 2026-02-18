@@ -41,15 +41,15 @@ public class ReviewController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ReviewResponseDto> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(reviewService.getById(id));
+    public ReviewResponseDto getById(@PathVariable Long id) {
+        return reviewService.getById(id);
     }
 
     @GetMapping
-    public ResponseEntity<List<ReviewResponseDto>> getByFilmId(
+    public List<ReviewResponseDto> getByFilmId(
             @RequestParam(required = false) Long filmId,
             @RequestParam(defaultValue = "10")
             @Positive(message = "Количество должно быть положительным числом") int count) {
-        return ResponseEntity.ok(reviewService.getReviews(filmId, count));
+        return reviewService.getReviews(filmId, count);
     }
 }

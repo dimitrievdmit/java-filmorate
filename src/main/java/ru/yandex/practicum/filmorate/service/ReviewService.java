@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.dto.review.ReviewResponseDto;
 import ru.yandex.practicum.filmorate.dto.review.ReviewUpdateDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
+import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.List;
 import java.util.Map;
@@ -73,7 +74,7 @@ public class ReviewService {
                 ? reviewRepository.findAll(count)
                 : reviewRepository.findByFilmId(filmId, count);
 
-        List<Long> reviewIds = reviews.stream().map(r -> r.getId()).toList();
+        List<Long> reviewIds = reviews.stream().map(Review::getId).toList();
         Map<Long, Integer> usefulMap = reviewRatingService.getUsefulByReviewIds(reviewIds);
 
         return reviews.stream()
