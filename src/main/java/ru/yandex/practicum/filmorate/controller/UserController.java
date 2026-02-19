@@ -1,13 +1,17 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.dto.UserReceiveDTO;
 import ru.yandex.practicum.filmorate.dto.UserSendDTO;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.service.RecommendationService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
@@ -19,6 +23,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final RecommendationService recommendationService;
 
     @GetMapping
     public Collection<UserSendDTO> getAllUsers() {
@@ -74,6 +79,19 @@ public class UserController {
         return userService.usersGetCommonFriends(id, otherId)
                 .stream()
                 .map(UserMapper::mapToSendDTO)
+                .toList();
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public Collection<FilmSendDTO> getFilmRecommendations(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "10")
+            @Positive(message = "Параметр должен быть положительным числом")
+            Long count
+    ) {
+        return recommendationService.getRecommendedFilms(id, count)
+                .stream()
+                .map(FilmMapper::mapToSendDTO)
                 .toList();
     }
 }

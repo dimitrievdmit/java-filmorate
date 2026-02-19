@@ -3,26 +3,31 @@ package ru.yandex.practicum.filmorate.service;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.LikeStorage;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.dal.FilmStorage;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validator.Validator;
 
 import java.util.Collection;
+import java.util.List;
 
 @Service
 @Slf4j
 public class FilmService {
     private final FilmStorage filmStorage;
+    private final LikeStorage likeStorage;
     private final UserService userService;
     private final GenreService genreService;
 
     public FilmService(
             FilmStorage filmStorage,
+            LikeStorage likeStorage,
             UserService userService,
             GenreService genreService
     ) {
         this.filmStorage = filmStorage;
+        this.likeStorage = likeStorage;
         this.userService = userService;
         this.genreService = genreService;
     }
@@ -31,8 +36,12 @@ public class FilmService {
         return filmStorage.getAllFilms();
     }
 
-    public Film createFilm(@Valid Film film) {
-        return filmStorage.createFilm(film);
+    public Collection<Film> getFilms(List<Long> filmIds) {
+        Collection<Film> films = filmStorage.getFilms(filmIds);
+        if (films.isEmpty()) {
+            throw new NotFoundException("Фильм с filmIds = " + filmIds + " не найдены");
+        }
+        return films;
     }
 
     public Film getFilm(Long id) {
@@ -40,6 +49,10 @@ public class FilmService {
         Validator.validateId(id, "Id фильма должен быть указан");
         checkThatFilmExists(id);
         return filmStorage.getFilm(id);
+    }
+
+    public Film createFilm(@Valid Film film) {
+        return filmStorage.createFilm(film);
     }
 
     public Film updateFilm(@Valid Film newFilm) {
@@ -56,16 +69,17 @@ public class FilmService {
 
     public Film filmAddLike(Long id, Long userId) {
         log.info("Добавление лайка фильму {} пользователем {}", id, userId);
-        checkThatFilmExists(id);
+        Film film = filmStorage.getFilm(id);
         userService.checkThatUserExists(userId);
-        return filmStorage.filmAddLike(id, userId);
+        return likeStorage.filmAddLike(film, userId);
     }
 
     public Film filmDeleteLike(Long id, Long userId) {
         log.info("Удаление лайка фильму {} пользователем {}", id, userId);
-        checkThatFilmExists(id);
+        Film film = filmStorage.getFilm(id);
         userService.checkThatUserExists(userId);
-        return filmStorage.removeLike(id, userId);
+
+        return likeStorage.filmRemoveLike(film, userId);
     }
 
     public Film filmAddGenre(Long id, Integer genreId) {
