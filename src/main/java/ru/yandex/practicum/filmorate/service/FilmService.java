@@ -87,7 +87,7 @@ public class FilmService {
         return filmStorage.getPopularFilms(count);
     }
 
-    private void checkThatFilmExists(Long id) {
+    public void checkThatFilmExists(Long id) {
         log.info("Проверить, что фильм существует.");
         if (filmStorage.checkIfNotExists(id)) {
             String errText = "Фильм с id = " + id + " не найден";
