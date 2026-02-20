@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dal.mappers;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.enums.FilmRating;
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 
 @SuppressWarnings("unused")
 @Component
+@Primary
 public class FilmRowMapper implements RowMapper<Film> {
     @Override
     public Film mapRow(ResultSet rs, int rowNum) throws SQLException {
