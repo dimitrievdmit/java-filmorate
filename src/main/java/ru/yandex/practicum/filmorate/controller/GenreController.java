@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.mapper.FilmGenreMapper;
 import ru.yandex.practicum.filmorate.service.GenreService;
 
 import java.util.Collection;
+import java.util.Comparator;
 
 @SuppressWarnings("unused")
 @RestController
@@ -24,6 +25,7 @@ public class GenreController {
         return genreService.getAllGenres()
                 .stream()
                 .map(FilmGenreMapper::mapToDTO)
+                .sorted(Comparator.comparing(FilmGenreSendDTO::getId))
                 .toList();
     }
 
