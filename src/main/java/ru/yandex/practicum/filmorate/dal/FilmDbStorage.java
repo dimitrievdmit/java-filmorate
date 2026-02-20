@@ -127,23 +127,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         this.likeStorage = likeStorage;
     }
 
-
-    @Override
-    public Collection<Film> getAllFilms() {
-        // 1. Получаем основные данные о фильмах (без жанров и лайков)
-        List<Film> films = findMany(SELECT_ALL_FILMS_QUERY, Collections.emptyMap());
-
-        if (films.isEmpty()) {
-            return films;
-        }
-
-        // 2. Получаем все жанры для указанных фильмов
-        // 3. Получаем все лайки для указанных фильмов
-        // 4. Дополняем каждый фильм собранными данными
-        return getFilmAdditionalData(films);
-    }
-
-    private Collection<Film> getManyFilms(String query, Map<String, Object> params) {
+    private Collection<Film> getManyFilmsWithAdditionalData(String query, Map<String, Object> params) {
         // 1. Получаем основные данные о фильмах (без жанров и лайков)
         List<Film> films = findMany(query, params);
 
@@ -159,14 +143,20 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         return films;
     }
 
+
+    @Override
+    public Collection<Film> getAllFilms() {
+        return getManyFilmsWithAdditionalData(SELECT_ALL_FILMS_QUERY, Collections.emptyMap());
+    }
+
     @Override
     public Collection<Film> getPopularFilms(Long count) {
-        return getManyFilms(SELECT_TOP_FILMS_QUERY, Map.of("count", count));
+        return getManyFilmsWithAdditionalData(SELECT_TOP_FILMS_QUERY, Map.of("count", count));
     }
 
     @Override
     public Collection<Film> getFilms(List<Long> filmIds) {
-        return getManyFilms(SELECT_MANY_FILMS_QUERY, Map.of("filmIds", filmIds));
+        return getManyFilmsWithAdditionalData(SELECT_MANY_FILMS_QUERY, Map.of("filmIds", filmIds));
     }
 
     @Override

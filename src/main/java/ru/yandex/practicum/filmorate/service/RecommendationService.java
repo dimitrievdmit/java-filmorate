@@ -48,17 +48,9 @@ public class RecommendationService {
         }
 
         // Получить все фильмы от похожих пользователей
-        Set<Long> allFilmsFromSimilar = getAllFilmsFromUsers(similarUsers);
-
         // Исключить фильмы, которые пользователь уже лайкнул
-        allFilmsFromSimilar.removeAll(targetUserLikes);
-
-        if (allFilmsFromSimilar.isEmpty()) {
-            return Collections.emptyList();
-        }
-
         // Отсортировать по частоте упоминания среди похожих пользователей
-        Map<Long, Long> filmFrequency = calculateFilmFrequency(allFilmsFromSimilar, similarUsers);
+        Map<Long, Long> filmFrequency = getFilmsWithFrequency(targetUserLikes, similarUsers);
 
         // Преобразовать ID в объекты Film и вернуть топ‑count
         return getTopFilmsByFrequency(filmFrequency, count);
@@ -103,41 +95,37 @@ public class RecommendationService {
         return similarUsers;
     }
 
-    private Set<Long> getAllFilmsFromUsers(List<UserWithSimilarity> similarUsers) {
-        if (similarUsers.isEmpty()) return Collections.emptySet();
 
+    private Map<Long, Long> getFilmsWithFrequency(Set<Long> targetUserLikes, List<UserWithSimilarity> similarUsers) {
+
+        // Получить все фильмы от похожих пользователей
         List<Long> userIds = similarUsers.stream()
                 .map(UserWithSimilarity::userId)
                 .collect(Collectors.toList());
 
         Map<Long, Set<Long>> userLikesMap = likeStorage.getFilmLikesByUsers(userIds);
 
-        Set<Long> allFilms = new HashSet<>();
+        Set<Long> allFilmsFromSimilar = new HashSet<>();
         for (Set<Long> films : userLikesMap.values()) {
-            allFilms.addAll(films);
+            allFilmsFromSimilar.addAll(films);
         }
-        return allFilms;
-    }
 
+        // Исключить фильмы, которые пользователь уже лайкнул
+        allFilmsFromSimilar.removeAll(targetUserLikes);
 
-    private Map<Long, Long> calculateFilmFrequency(Set<Long> filmIds, List<UserWithSimilarity> similarUsers) {
-        if (filmIds.isEmpty() || similarUsers.isEmpty()) {
+        if (allFilmsFromSimilar.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        List<Long> userIds = similarUsers.stream()
-                .map(UserWithSimilarity::userId)
-                .collect(Collectors.toList());
-
-        Map<Long, Set<Long>> userLikesMap = likeStorage.getFilmLikesByUsers(userIds);
-
+        // Отсортировать по частоте упоминания среди похожих пользователей
         Map<Long, Long> frequencyMap = new HashMap<>();
-        for (Long filmId : filmIds) {
+        for (Long filmId : allFilmsFromSimilar) {
             long count = userLikesMap.values().stream()
                     .filter(likes -> likes.contains(filmId))
                     .count();
             frequencyMap.put(filmId, count);
         }
+
         return frequencyMap;
     }
 

@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.LikeStorage;
@@ -51,11 +50,11 @@ public class FilmService {
         return filmStorage.getFilm(id);
     }
 
-    public Film createFilm(@Valid Film film) {
+    public Film createFilm(Film film) {
         return filmStorage.createFilm(film);
     }
 
-    public Film updateFilm(@Valid Film newFilm) {
+    public Film updateFilm(Film newFilm) {
         checkThatFilmExists(newFilm.getId());
         return filmStorage.updateFilm(newFilm);
     }
