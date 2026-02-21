@@ -39,10 +39,9 @@ public final class FilmMapper {
                 ? film.getLikes().stream().toList()
                 : Collections.emptyList();
 
-        //тут должен возвращать Имя?????????????????!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        List<DirectorSendDTO> directors = film.getDirectors() != null ?
+        List<FilmDirectorSendDTO> directors = film.getDirectors() != null ?
                 film.getDirectors().stream()
-                        .map(id -> new DirectorSendDTO(id, " "))
+                        .map(FilmDirectorSendDTO::new)
                         .toList()
                 : Collections.emptyList();
 
