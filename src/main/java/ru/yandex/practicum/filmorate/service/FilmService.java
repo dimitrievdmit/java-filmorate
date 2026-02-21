@@ -95,11 +95,6 @@ public class FilmService {
         return filmStorage.removeGenre(id, genreId);
     }
 
-    public Collection<Film> getPopularFilms(Long count) {
-        log.info("Получение первых {} фильмов по количеству лайков", count);
-        return filmStorage.getPopularFilms(count);
-    }
-
     public Collection<Film> getPopularFilms(Long count, Integer genreId, Integer year) {
         log.info("Получение первых {} фильмов по количеству лайков с фильтрами genreId={}, year={}", count, genreId, year);
         return filmStorage.getPopularFilms(count, genreId, year);

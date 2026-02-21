@@ -22,8 +22,6 @@ public interface FilmStorage {
 
     void deleteFilm(Long id);
 
-    Collection<Film> getPopularFilms(Long count);
-
     Collection<Film> getPopularFilms(Long count, Integer genreId, Integer year);
 
     boolean checkIfNotExists(Long id);
