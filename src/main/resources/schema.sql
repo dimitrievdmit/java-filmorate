@@ -69,3 +69,17 @@ CREATE TABLE IF NOT EXISTS review_rating (
     positive BOOLEAN NOT NULL,
     CONSTRAINT pk_review_rating PRIMARY KEY (user_id, review_id)
 );
+
+CREATE TABLE IF NOT EXISTS user_feed (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    event_type VARCHAR(20) NOT NULL,
+    operation VARCHAR(20) NOT NULL,
+    entity_id BIGINT NOT NULL,
+    timestamp BIGINT NOT NULL,
+
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_feed_user ON user_feed(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_feed_time ON user_feed(timestamp);
