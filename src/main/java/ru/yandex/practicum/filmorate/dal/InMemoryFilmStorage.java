@@ -6,10 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("unused")
 @Component
@@ -96,6 +93,18 @@ public class InMemoryFilmStorage implements FilmStorage {
         return !films.containsKey(id);
     }
 
+    @Override
+    //заглушка
+    public List<Film> getDirectorFilms(long directorId) {
+        return List.of();
+    }
+
+    @Override
+    //заглушка
+    public List<Long> getFilmDirectors(Long filmId) {
+        return List.of();
+    }
+
     private Film updateFilmFields(Film oldFilm, Film newFilm) {
         oldFilm.setName(newFilm.getName());
         oldFilm.setDescription(newFilm.getDescription());
@@ -114,4 +123,6 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .orElse(0);
         return ++currentMaxId;
     }
+
+
 }

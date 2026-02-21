@@ -1,14 +1,20 @@
 package ru.yandex.practicum.filmorate.service;
 
 import jakarta.validation.Valid;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.SortComparator;
+import org.springframework.boot.autoconfigure.info.ProjectInfoProperties;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.dal.FilmStorage;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validator.Validator;
 
-import java.util.Collection;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -32,7 +38,13 @@ public class FilmService {
     }
 
     public Film createFilm(@Valid Film film) {
-        return filmStorage.createFilm(film);
+        log.info("Сервис: создание фильма {}", film.getName());
+
+        filmStorage.createFilm(film);
+        FilmSendDTO dto = FilmMapper.mapToSendDTO(film);
+
+        log.info("Сервис: отправка DTO фильма id:{} контроллеру", dto.getId());
+        return film;
     }
 
     public Film getFilm(Long id) {
@@ -85,6 +97,31 @@ public class FilmService {
     public Collection<Film> getPopularFilms(Long count) {
         log.info("Получение первых {} фильмов по количеству лайков", count);
         return filmStorage.getPopularFilms(count);
+    }
+
+    public List<FilmSendDTO> getSortedDirectorFilms(long directorId, String sortBy) {
+
+        List<Film> films = filmStorage.getDirectorFilms(directorId);
+        for (Film f : films) {
+            Set<Long> list = new HashSet<>(filmStorage.getFilmDirectors(f.getId()));
+            f.setDirectors(list);
+        }
+
+        if (films.isEmpty()) return new ArrayList<>();
+
+        if (sortBy.equals("year"))
+            films = films.stream()
+                    .sorted(Comparator.comparing(Film::getReleaseDate))
+                    .toList();
+
+        if (sortBy.equals("likes"))
+            films = films.stream()
+                    .sorted(Comparator.comparing(film -> film.getLikes().size()))
+                    .toList();
+
+        return films.stream()
+                .map(FilmMapper::mapToSendDTO)
+                .toList();
     }
 
     private void checkThatFilmExists(Long id) {

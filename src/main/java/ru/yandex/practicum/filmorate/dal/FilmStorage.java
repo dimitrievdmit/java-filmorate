@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.dal;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface FilmStorage {
     Collection<Film> getAllFilms();
@@ -26,4 +27,8 @@ public interface FilmStorage {
     Collection<Film> getPopularFilms(Long count);
 
     boolean checkIfNotExists(Long id);
+
+    List<Film> getDirectorFilms(long directorId);
+
+    List<Long> getFilmDirectors(Long filmId);
 }

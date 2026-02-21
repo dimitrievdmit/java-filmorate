@@ -52,7 +52,8 @@ public abstract class BaseFilmServiceTest {
                 200L,
                 null,
                 FilmRating.PG_13,
-                null
+                null,
+                new HashSet<>()
         );
 
         Film updated = getFilmService().updateFilm(updatedFilm);
@@ -158,7 +159,8 @@ public abstract class BaseFilmServiceTest {
                 created.getDuration(),
                 created.getGenres(),
                 FilmRating.R,
-                created.getLikes()
+                created.getLikes(),
+                created.getDirectors()
         );
 
         Film updated = getFilmService().updateFilm(updatedFilm);

@@ -53,3 +53,24 @@ CREATE TABLE IF NOT EXISTS film_likes (
     PRIMARY KEY (film_id, user_id)
 );
 CREATE INDEX IF NOT EXISTS idx_film_likes_film_id ON film_likes(film_id);
+
+-- add-director REALISATION by Stingray1908
+-- изменить README
+DELETE FROM director_film;
+DELETE FROM directors;
+
+CREATE TABLE IF NOT EXISTS directors (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS film_director (
+    director_id BIGINT NOT NULL,
+    film_id BIGINT NOT NULL,
+    PRIMARY KEY (director_id, film_id),
+    FOREIGN KEY (director_id) REFERENCES directors(id) ON DELETE CASCADE,
+    FOREIGN KEY (film_id) REFERENCES films(id) ON DELETE CASCADE
+);
+
+-- CONSTRAINT_INDEX_6 требует уникальности имен
+

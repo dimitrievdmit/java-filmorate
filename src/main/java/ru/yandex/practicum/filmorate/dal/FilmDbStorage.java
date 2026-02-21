@@ -9,12 +9,15 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.filmorate.dal.mappers.FilmDirectorRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmGenreRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmLikeRowMapper;
+import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
 import ru.yandex.practicum.filmorate.model.Film;
 
 
+import java.sql.Array;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,6 +29,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     private final FilmGenreRowMapper filmGenreRowMapper;
     private final FilmLikeRowMapper filmLikeRowMapper;
+    private final FilmDirectorRowMapper filmDirectorRowMapper;
 
 
     private static final String SELECT_ALL_FILMS_QUERY = """
@@ -68,6 +72,13 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 WHERE fl.film_id IN (:filmIds)
             """;
 
+    private static final String SELECT_DIRECTORS_QUERY = """
+                SELECT
+                    fd.film_id,
+                    fd.director_id
+                FROM film_director fd
+                WHERE fd.film_id IN (:filmIds)
+            """;
 
     private static final String SELECT_TOP_FILMS_QUERY = """
                 SELECT
@@ -112,6 +123,11 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 VALUES (:filmId, :genreId)
             """;
 
+    private static final String INSERT_DIRECTOR_QUERY = """
+                INSERT INTO film_director (film_id, director_id)
+                VALUES (:filmId, :director_id)
+            """;
+
     private static final String DELETE_LIKES_QUERY = "DELETE FROM film_likes WHERE film_id = :filmId";
     private static final String DELETE_SINGLE_LIKE_QUERY = """
                 DELETE FROM film_likes
@@ -123,16 +139,46 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 DELETE FROM film_genres
                 WHERE film_id = :filmId AND genre_id = :genreId
             """;
+    private static final String DELETE_DIRECTOR_QUERY = "DELETE FROM film_director WHERE film_id = :filmId";
+    private static final String DELETE_SINGLE_DIRECTOR_QUERY = """
+                DELETE FROM film_director
+                WHERE film_id = :filmId AND director_id = :genreId
+            """;
+
+    private static final String GET_DIRECTOR_FILMS_BY_ID = """
+                    SELECT
+                    f.id,
+                    f.name,
+                    f.description,
+                    f.release_date,
+                    f.duration,
+                    f.rating_id,
+                    fd.director_id
+                    FROM films f
+                    JOIN film_director fd ON fd.film_id = f.id
+                    WHERE fd.director_id = :directorId
+                    """;
+
+    private static final String SELECT_FILM_DIRECTORS_BY_ID = """
+                    SELECT
+                    fd.director_id
+                    FROM film_director fd
+                    WHERE film_id = :filmId
+                    """;
+
+
 
     public FilmDbStorage(
             NamedParameterJdbcTemplate jdbc,
             RowMapper<Film> mapper,
             FilmGenreRowMapper filmGenreRowMapper,
-            FilmLikeRowMapper filmLikeRowMapper
+            FilmLikeRowMapper filmLikeRowMapper,
+            FilmDirectorRowMapper filmDirectorRowMapper
     ) {
         super(jdbc, mapper);
         this.filmGenreRowMapper = filmGenreRowMapper;
         this.filmLikeRowMapper = filmLikeRowMapper;
+        this.filmDirectorRowMapper = filmDirectorRowMapper;
     }
 
 
@@ -173,7 +219,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         return findOne(SELECT_ONE_FILM_QUERY, Map.of("id", id)).isEmpty();
     }
 
-
     @Override
     public Film getFilm(Long id) {
         // 1. Получаем основную информацию о фильме по ID
@@ -196,6 +241,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     @Override
     @Transactional(rollbackFor = Throwable.class)
     public Film createFilm(Film film) {
+
         Map<String, Object> params = Map.of(
                 "name", film.getName(),
                 "description", film.getDescription(),
@@ -209,7 +255,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
         updateFilmGenres(film, filmId, false);
         updateFilmLikes(film, filmId, false);
-
+        updateFilmDirectors(film, filmId, false);
         return film;
     }
 
@@ -225,7 +271,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         }
         // 2. Если жанры указаны — добавляем их в БД
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            // Формируем массив параметров для каждого лайка
+            // Формируем массив параметров для каждого жанра
             SqlParameterSource[] batch = film.getGenres().stream()
                     .map(genre -> new MapSqlParameterSource()
                             .addValue("filmId", filmId)
@@ -234,6 +280,30 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
             // Выполняем batch-вставку
             jdbc.batchUpdate(INSERT_GENRE_QUERY, batch);
+        }
+    }
+
+
+    private final String UPDATE_DIRECTOR_QUERY = "UPDATE film_director SET director_id = :director_id WHERE film_id = :filmId";
+
+    private void updateFilmDirectors(Film film, long filmId, Boolean reset) {
+
+        if (reset) {
+
+            // 1. Удаляем всех существующих режиссеров для данного фильма
+            update(DELETE_DIRECTOR_QUERY, Map.of("filmId", filmId), false);
+
+        }// 2. Если режиссеры указаны — добавляем их в БД
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+            // Формируем массив параметров для каждого режиссера
+            SqlParameterSource[] batch = film.getDirectors().stream()
+                    .map(director -> new MapSqlParameterSource()
+                            .addValue("filmId", filmId)
+                            .addValue("director_id", director))
+                    .toArray(SqlParameterSource[]::new);
+
+            // Выполняем batch-вставку
+            jdbc.batchUpdate(INSERT_DIRECTOR_QUERY, batch);
         }
     }
 
@@ -312,7 +382,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     @Transactional(rollbackFor = Throwable.class)
     public Film updateFilm(Film newFilm) {
         long filmId = newFilm.getId();
-
+        System.out.println("Хранилице получило " + newFilm);
         // 1. Обновляем основную запись фильма (без жанров и лайков)
         Map<String, Object> updateParams = Map.of(
                 "name", newFilm.getName(),
@@ -330,13 +400,25 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         // 3. Перезаписываем лайки: сначала удаляем старые, затем добавляем новые
         updateFilmLikes(newFilm, filmId, true);
 
+        updateFilmDirectors(newFilm, filmId, true);
+
         return newFilm;
     }
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
+    public List<Film> getDirectorFilms(long directorId) {
+        System.out.println("хранилище, заход в getDirectorFilms ");
+        MapSqlParameterSource params = new MapSqlParameterSource("directorId", directorId);
+        List<Film> films = jdbc.query(GET_DIRECTOR_FILMS_BY_ID, params, mapper);
+        System.out.println("БД отдала список " + films);
+        return films;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Throwable.class)
     public void deleteFilm(Long id) {
-        // Благодаря ON DELETE CASCADE у всех внешних ключей, явное удаление лайков и жанров не нужно.
+        // Благодаря ON DELETE CASCADE у всех внешних ключей, явное удаление лайков, жанров и режиссеров не нужно.
         delete(DELETE_QUERY, id);
     }
 
@@ -352,6 +434,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         // 3. Получаем лайки для указанных фильмов
         Map<Long, Set<Long>> likesMap = getFilmLikes(filmIds);
 
+        Map<Long, Set<Long>> directorMap = getFilmDirectors(filmIds);
         // 4. Создаём новые объекты Film с дополненными данными (не меняя исходные)
         return enrichFilms(films, genresMap, likesMap);
     }
@@ -388,6 +471,28 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 ));
     }
 
+    private Map<Long, Set<Long>> getFilmDirectors(List<Long> filmIds) {
+        // Получаем всех режиссеров для указанных фильмов
+        // Запрос возвращает пары (film_id, user_id)
+        return jdbc.query(
+                        SELECT_DIRECTORS_QUERY,
+                        Map.of("filmIds", filmIds),
+                        filmDirectorRowMapper
+                )
+                .stream()
+                // Группируем по film_id: для каждого фильма — набор ID пользователей, поставивших лайк
+                .collect(Collectors.groupingBy(
+                        Map.Entry::getKey,
+                        Collectors.mapping(Map.Entry::getValue, Collectors.toSet())
+                ));
+    }
+
+    public List<Long> getFilmDirectors(Long filmId) {
+        Map<String, Object> params = Map.of("filmId", filmId);
+        return jdbc.query(SELECT_FILM_DIRECTORS_BY_ID, params,
+                (rs, rowNum) -> rs.getLong("director_id"));
+    }
+
     private List<Film> enrichFilms(
             List<Film> films,
             Map<Long, Set<FilmGenre>> genresMap,
@@ -410,6 +515,5 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                     return newFilm;
                 })
                 .collect(Collectors.toList());
-
     }
 }

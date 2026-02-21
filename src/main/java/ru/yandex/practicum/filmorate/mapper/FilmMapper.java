@@ -39,6 +39,13 @@ public final class FilmMapper {
                 ? film.getLikes().stream().toList()
                 : Collections.emptyList();
 
+        //тут должен возвращать Имя?????????????????!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        List<DirectorSendDTO> directors = film.getDirectors() != null ?
+                film.getDirectors().stream()
+                        .map(id -> new DirectorSendDTO(id, " "))
+                        .toList()
+                : Collections.emptyList();
+
         return new FilmSendDTO(
                 film.getId(),
                 film.getName(),
@@ -47,7 +54,8 @@ public final class FilmMapper {
                 film.getDuration(),
                 genreDtos,
                 mpaDto,
-                likes
+                likes,
+                directors
         );
     }
 
@@ -77,6 +85,13 @@ public final class FilmMapper {
                 ? film.getLikes().stream().toList()
                 : Collections.emptyList();
 
+        List<FilmDirectorReceiveDTO> directors = film.getDirectors() != null
+                ? film.getDirectors().stream()
+                .filter(Objects::nonNull)
+                .map(FilmDirectorReceiveDTO::new)
+                .toList()
+                : Collections.emptyList();
+
         return new FilmReceiveDTO(
                 film.getId(),
                 film.getName(),
@@ -85,7 +100,8 @@ public final class FilmMapper {
                 film.getDuration(),
                 genreDtos,
                 mpaDto,
-                likes
+                likes,
+                directors
         );
     }
 
@@ -121,6 +137,12 @@ public final class FilmMapper {
                 ? new HashSet<>(filmDTO.getLikes())
                 : new HashSet<>();
 
+        Set<Long> directors = filmDTO.getDirectors() != null ?
+                filmDTO.getDirectors().stream()
+                        .map(FilmDirectorReceiveDTO::getId)
+                        .collect(Collectors.toSet())
+                : new HashSet<>();
+
         return new Film(
                 filmDTO.getId(),
                 filmDTO.getName(),
@@ -129,7 +151,8 @@ public final class FilmMapper {
                 filmDTO.getDuration(),
                 genres,
                 rating,
-                likes
+                likes,
+                directors
         );
     }
 }
