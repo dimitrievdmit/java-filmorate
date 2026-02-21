@@ -24,6 +24,8 @@ public interface FilmStorage {
 
     Collection<Film> getPopularFilms(Long count);
 
+    Collection<Film> getPopularFilms(Long count, Integer genreId, Integer year);
+
     boolean checkIfNotExists(Long id);
 
 }

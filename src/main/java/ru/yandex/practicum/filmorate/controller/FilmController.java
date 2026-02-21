@@ -77,11 +77,15 @@ public class FilmController {
 
     @GetMapping("/popular")
     public Collection<FilmSendDTO> getPopularFilms(
-            @RequestParam(defaultValue = "10L")
+            @RequestParam(defaultValue = "10")
             @Positive(message = "Параметр должен быть положительным числом")
-            Long count
+            Long count,
+            @Positive(message = "Параметр genreId должен быть положительным числом")
+            @RequestParam(required = false) Integer genreId,
+            @Positive(message = "Параметр year должен быть положительным числом")
+            @RequestParam(required = false) Integer year
     ) {
-        return filmService.getPopularFilms(count)
+        return filmService.getPopularFilms(count, genreId, year)
                 .stream()
                 .map(FilmMapper::mapToSendDTO)
                 .toList();
