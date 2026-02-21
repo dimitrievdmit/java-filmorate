@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 @Data
 @NoArgsConstructor(force = true)
-@RequiredArgsConstructor // чтобы оставить обычную логику
+@RequiredArgsConstructor
 @Builder
 
 public class DirectorReceiveDTO {

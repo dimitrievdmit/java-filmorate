@@ -12,12 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmDirectorRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmGenreRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmLikeRowMapper;
-import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
 import ru.yandex.practicum.filmorate.model.Film;
 
-
-import java.sql.Array;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -146,26 +143,25 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             """;
 
     private static final String GET_DIRECTOR_FILMS_BY_ID = """
-                    SELECT
-                    f.id,
-                    f.name,
-                    f.description,
-                    f.release_date,
-                    f.duration,
-                    f.rating_id,
-                    fd.director_id
-                    FROM films f
-                    JOIN film_director fd ON fd.film_id = f.id
-                    WHERE fd.director_id = :directorId
-                    """;
+            SELECT
+            f.id,
+            f.name,
+            f.description,
+            f.release_date,
+            f.duration,
+            f.rating_id,
+            fd.director_id
+            FROM films f
+            JOIN film_director fd ON fd.film_id = f.id
+            WHERE fd.director_id = :directorId
+            """;
 
     private static final String SELECT_FILM_DIRECTORS_BY_ID = """
-                    SELECT
-                    fd.director_id
-                    FROM film_director fd
-                    WHERE film_id = :filmId
-                    """;
-
+            SELECT
+            fd.director_id
+            FROM film_director fd
+            WHERE film_id = :filmId
+            """;
 
 
     public FilmDbStorage(
@@ -283,11 +279,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         }
     }
 
-
-    private final String UPDATE_DIRECTOR_QUERY = "UPDATE film_director SET director_id = :director_id WHERE film_id = :filmId";
-
     private void updateFilmDirectors(Film film, long filmId, Boolean reset) {
-
         if (reset) {
 
             // 1. Удаляем всех существующих режиссеров для данного фильма
@@ -382,7 +374,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     @Transactional(rollbackFor = Throwable.class)
     public Film updateFilm(Film newFilm) {
         long filmId = newFilm.getId();
-        System.out.println("Хранилице получило " + newFilm);
+
         // 1. Обновляем основную запись фильма (без жанров и лайков)
         Map<String, Object> updateParams = Map.of(
                 "name", newFilm.getName(),
@@ -400,19 +392,25 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         // 3. Перезаписываем лайки: сначала удаляем старые, затем добавляем новые
         updateFilmLikes(newFilm, filmId, true);
 
+        // 4. Перезаписываем режиссеров
         updateFilmDirectors(newFilm, filmId, true);
 
         return newFilm;
     }
 
-    @Override
     @Transactional(rollbackFor = Throwable.class)
     public List<Film> getDirectorFilms(long directorId) {
-        System.out.println("хранилище, заход в getDirectorFilms ");
+
         MapSqlParameterSource params = new MapSqlParameterSource("directorId", directorId);
         List<Film> films = jdbc.query(GET_DIRECTOR_FILMS_BY_ID, params, mapper);
-        System.out.println("БД отдала список " + films);
-        return films;
+        List<Long> filmIds = films.stream()
+                .map(Film::getId)
+                .toList();
+        Map<Long, Set<Long>> filmDirectors = this.getFilmDirectors(filmIds);
+
+        return films.stream()
+                .peek(f -> f.setDirectors(filmDirectors.get(f.getId())))
+                .toList();
     }
 
     @Override
@@ -480,7 +478,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                         filmDirectorRowMapper
                 )
                 .stream()
-                // Группируем по film_id: для каждого фильма — набор ID пользователей, поставивших лайк
+
                 .collect(Collectors.groupingBy(
                         Map.Entry::getKey,
                         Collectors.mapping(Map.Entry::getValue, Collectors.toSet())
