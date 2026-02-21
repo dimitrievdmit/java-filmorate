@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.service.ReviewTest;
+package ru.yandex.practicum.filmorate.service.reviewTest;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
