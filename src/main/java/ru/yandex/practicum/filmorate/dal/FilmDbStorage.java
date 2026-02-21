@@ -88,6 +88,24 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 LIMIT :count
             """;
 
+    private static final String SELECT_TOP_FILMS_WITH_FILTERS_QUERY = """
+            SELECT
+                f.id,
+                f.name,
+                f.description,
+                f.release_date,
+                f.duration,
+                f.rating_id
+            FROM films f
+            LEFT JOIN film_likes fl ON f.id = fl.film_id
+            LEFT JOIN film_genres fg ON f.id = fg.film_id
+            WHERE (:genreId IS NULL OR fg.genre_id = :genreId)
+              AND (:year IS NULL OR EXTRACT(YEAR FROM f.release_date) = :year)
+            GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.rating_id
+            ORDER BY COUNT(fl.user_id) DESC
+            LIMIT :count
+            """;
+
     private static final String INSERT_QUERY = """
                 INSERT INTO films (name, description, release_date, duration, rating_id)
                 VALUES (:name, :description, :releaseDate, :duration, :ratingId)
@@ -152,6 +170,21 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     @Override
     public Collection<Film> getPopularFilms(Long count) {
         return getManyFilmsWithAdditionalData(SELECT_TOP_FILMS_QUERY, Map.of("count", count));
+    }
+
+    @Override
+    public Collection<Film> getPopularFilms(Long count, Integer genreId, Integer year) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("count", count);
+        params.put("genreId", genreId);
+        params.put("year", year);
+
+        List<Film> films = findMany(SELECT_TOP_FILMS_WITH_FILTERS_QUERY, params);
+        if (films.isEmpty()) {
+            return films;
+        }
+
+        return getFilmAdditionalData(films);
     }
 
     @Override
