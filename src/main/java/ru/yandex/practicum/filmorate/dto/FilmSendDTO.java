@@ -14,6 +14,7 @@ import java.util.List;
 
 import static ru.yandex.practicum.filmorate.validator.Validator.MAX_DESCRIPTION_LENGTH;
 import static ru.yandex.practicum.filmorate.validator.Validator.MIN_RELEASE_DATE_STR;
+
 @Data
 public class FilmSendDTO {
     private final Long id;

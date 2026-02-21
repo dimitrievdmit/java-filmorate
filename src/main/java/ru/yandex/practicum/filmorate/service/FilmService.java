@@ -1,20 +1,19 @@
 package ru.yandex.practicum.filmorate.service;
 
 import jakarta.validation.Valid;
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.SortComparator;
-import org.springframework.boot.autoconfigure.info.ProjectInfoProperties;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.FilmStorage;
 import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.dal.FilmStorage;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validator.Validator;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -100,26 +99,17 @@ public class FilmService {
     }
 
     public List<FilmSendDTO> getSortedDirectorFilms(long directorId, String sortBy) {
+        Comparator<Film> comparator = null;
 
         List<Film> films = filmStorage.getDirectorFilms(directorId);
-        for (Film f : films) {
-            Set<Long> list = new HashSet<>(filmStorage.getFilmDirectors(f.getId()));
-            f.setDirectors(list);
-        }
-
         if (films.isEmpty()) return new ArrayList<>();
 
-        if (sortBy.equals("year"))
-            films = films.stream()
-                    .sorted(Comparator.comparing(Film::getReleaseDate))
-                    .toList();
-
-        if (sortBy.equals("likes"))
-            films = films.stream()
-                    .sorted(Comparator.comparing(film -> film.getLikes().size()))
-                    .toList();
+        if (sortBy.equals("year")) comparator = Comparator.comparing(Film::getReleaseDate);
+        if (sortBy.equals("likes")) comparator = Comparator.comparing(film -> film.getLikes().size());
+        if (comparator == null) throw new IllegalArgumentException("атрибут сортировки задан неверно");
 
         return films.stream()
+                .sorted(comparator)
                 .map(FilmMapper::mapToSendDTO)
                 .toList();
     }

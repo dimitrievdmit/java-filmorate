@@ -9,8 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.dto.FilmReceiveDTO;
+import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
@@ -37,14 +37,13 @@ public class FilmController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public FilmSendDTO createFilm(@Valid @RequestBody FilmReceiveDTO film) {
-        log.info("запрос создать фильм");
+        log.info("запрос создать фильм {}", film.getName());
         return FilmMapper.mapToSendDTO(filmService.createFilm(FilmMapper.mapToDomain(film)));
     }
 
     @PutMapping
     public FilmSendDTO updateFilm(@Valid @RequestBody FilmReceiveDTO newFilm) {
         log.info("запрос обновить фильм id:{} ", newFilm.getId());
-        System.out.println("Тело " + newFilm);
         return FilmMapper.mapToSendDTO(filmService.updateFilm(FilmMapper.mapToDomain(newFilm)));
     }
 
@@ -57,7 +56,7 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public FilmSendDTO getFilm(@PathVariable Long id) {
-        log.info("запрос получить фильм ид:{}", id);
+        log.info("запрос получить фильм id:{}", id);
         return FilmMapper.mapToSendDTO((filmService.getFilm(id)));
     }
 
@@ -85,11 +84,11 @@ public class FilmController {
 
     @GetMapping("/director/{directorId}")
     public List<FilmSendDTO> getSortedDirectorFilms(@PathVariable
-                                                        @Min(value = 1L, message = "Параметр должен быть > 0")
-                                                        int directorId,
-                                             @RequestParam()
-                                             @Pattern(regexp = "year|likes", message = "атрибут sortBy задан не верно")
-                                             String sortBy) {
+                                                    @Min(value = 1L, message = "Параметр должен быть > 0")
+                                                    int directorId,
+                                                    @RequestParam()
+                                                    @Pattern(regexp = "year|likes", message = "атрибут sortBy задан не верно")
+                                                    String sortBy) {
         return filmService.getSortedDirectorFilms(directorId, sortBy);
     }
 

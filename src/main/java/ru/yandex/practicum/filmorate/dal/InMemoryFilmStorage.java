@@ -94,14 +94,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    //заглушка
+    //заглушка для использования метода в FilmService
     public List<Film> getDirectorFilms(long directorId) {
-        return List.of();
-    }
-
-    @Override
-    //заглушка
-    public List<Long> getFilmDirectors(Long filmId) {
         return List.of();
     }
 
