@@ -72,22 +72,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 WHERE fg.film_id IN (:filmIds)
             """;
 
-
-    private static final String SELECT_TOP_FILMS_QUERY = """
-                SELECT
-                    f.id,
-                    f.name,
-                    f.description,
-                    f.release_date,
-                    f.duration,
-                    f.rating_id
-                FROM films f
-                LEFT JOIN film_likes fl ON f.id = fl.film_id
-                GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.rating_id
-                ORDER BY COUNT(fl.user_id) DESC
-                LIMIT :count
-            """;
-
     private static final String SELECT_TOP_FILMS_WITH_FILTERS_QUERY = """
             SELECT
                 f.id,
@@ -165,11 +149,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     @Override
     public Collection<Film> getAllFilms() {
         return getManyFilmsWithAdditionalData(SELECT_ALL_FILMS_QUERY, Collections.emptyMap());
-    }
-
-    @Override
-    public Collection<Film> getPopularFilms(Long count) {
-        return getManyFilmsWithAdditionalData(SELECT_TOP_FILMS_QUERY, Map.of("count", count));
     }
 
     @Override
