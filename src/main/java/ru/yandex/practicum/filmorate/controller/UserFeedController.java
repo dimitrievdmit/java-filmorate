@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -22,10 +23,13 @@ public class UserFeedController {
     private final FeedService feedService;
 
     @GetMapping("/{id}/feed")
-    public Collection<FeedEventDTO> getUserFeed(@PathVariable Long id,
-                                                @RequestParam(defaultValue = "10") int limit) {
-        List<FeedEvent> feed =
-                (List<FeedEvent>) feedService.getFeedForUser(id, limit);
+    public Collection<FeedEventDTO> getUserFeed(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "10")
+            @Positive(message = "Параметр limit должен быть положительным числом")
+            int limit
+    ) {
+        List<FeedEvent> feed = feedService.getFeedForUser(id, limit);
 
         return feed.stream()
                 .map(FeedEventMapper::toDTO)
