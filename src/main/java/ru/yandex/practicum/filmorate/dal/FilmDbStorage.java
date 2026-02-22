@@ -25,7 +25,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     private final LikeStorage likeStorage;
     private final FilmGenreRowMapper filmGenreRowMapper;
-    private final FilmLikeRowMapper filmLikeRowMapper;
     private final FilmDirectorRowMapper filmDirectorRowMapper;
 
 
@@ -139,25 +138,25 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             """;
 
     private static final String GET_DIRECTOR_FILMS_BY_ID = """
-                    SELECT
-                    f.id,
-                    f.name,
-                    f.description,
-                    f.release_date,
-                    f.duration,
-                    f.rating_id,
-                    fd.director_id
-                    FROM films f
-                    JOIN film_director fd ON fd.film_id = f.id
-                    WHERE fd.director_id = :directorId
-                    """;
+            SELECT
+            f.id,
+            f.name,
+            f.description,
+            f.release_date,
+            f.duration,
+            f.rating_id,
+            fd.director_id
+            FROM films f
+            JOIN film_director fd ON fd.film_id = f.id
+            WHERE fd.director_id = :directorId
+            """;
 
     private static final String SELECT_FILM_DIRECTORS_BY_ID = """
-                    SELECT
-                    fd.director_id
-                    FROM film_director fd
-                    WHERE film_id = :filmId
-                    """;
+            SELECT
+            fd.director_id
+            FROM film_director fd
+            WHERE film_id = :filmId
+            """;
 
 
     public FilmDbStorage(
@@ -170,7 +169,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         super(jdbc, mapper);
         this.filmGenreRowMapper = filmGenreRowMapper;
         this.likeStorage = likeStorage;
-        this.filmLikeRowMapper = filmLikeRowMapper;
         this.filmDirectorRowMapper = filmDirectorRowMapper;
     }
 
@@ -290,7 +288,9 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             // 1. Удаляем всех существующих режиссеров для данного фильма
             update(DELETE_DIRECTOR_QUERY, Map.of("filmId", filmId), false);
 
-        }// 2. Если режиссеры указаны — добавляем их в БД
+        }
+
+        // 2. Если режиссеры указаны — добавляем их в БД
         if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
             // Формируем массив параметров для каждого режиссера
             SqlParameterSource[] batch = film.getDirectors().stream()
