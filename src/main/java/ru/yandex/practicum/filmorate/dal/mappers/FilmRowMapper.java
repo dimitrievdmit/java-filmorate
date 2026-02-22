@@ -5,12 +5,10 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.enums.FilmRating;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.awt.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.HashSet;
-import java.util.List;
 
 @SuppressWarnings("unused")
 @Component
