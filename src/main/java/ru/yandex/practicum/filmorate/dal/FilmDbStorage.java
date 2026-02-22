@@ -226,6 +226,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         return films;
     }
 
+
     @Override
     public Collection<Film> getAllFilms() {
         return getManyFilmsWithAdditionalData(SELECT_ALL_FILMS_QUERY, Collections.emptyMap());
@@ -247,14 +248,15 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     }
 
     @Override
+    public Collection<Film> getFilms(List<Long> filmIds) {
+        return getManyFilmsWithAdditionalData(SELECT_MANY_FILMS_QUERY, Map.of("filmIds", filmIds));
+    }
+
+    @Override
     public boolean checkIfNotExists(Long id) {
         return findOne(SELECT_ONE_FILM_QUERY, Map.of("id", id)).isEmpty();
     }
 
-    @Override
-    public Collection<Film> getFilms(List<Long> filmIds) {
-        return getManyFilmsWithAdditionalData(SELECT_MANY_FILMS_QUERY, Map.of("filmIds", filmIds));
-    }
 
     @Override
     public Film getFilm(Long id) {
@@ -307,7 +309,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         }
         // 2. Если жанры указаны — добавляем их в БД
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            // Формируем массив параметров для каждого жанра
+            // Формируем массив параметров для каждого лайка
             SqlParameterSource[] batch = film.getGenres().stream()
                     .map(genre -> new MapSqlParameterSource()
                             .addValue("filmId", filmId)
@@ -324,8 +326,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
             // 1. Удаляем всех существующих режиссеров для данного фильма
             update(DELETE_DIRECTOR_QUERY, Map.of("filmId", filmId), false);
-
-        }// 2. Если режиссеры указаны — добавляем их в БД
+        }   // 2. Если режиссеры указаны — добавляем их в БД
         if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
             // Формируем массив параметров для каждого режиссера
             SqlParameterSource[] batch = film.getDirectors().stream()
@@ -549,5 +550,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                     return newFilm;
                 })
                 .collect(Collectors.toList());
+
     }
 }
