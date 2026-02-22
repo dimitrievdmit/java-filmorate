@@ -9,6 +9,8 @@ import ru.yandex.practicum.filmorate.dal.ReviewRepository;
 import ru.yandex.practicum.filmorate.dto.review.ReviewRequestDto;
 import ru.yandex.practicum.filmorate.dto.review.ReviewResponseDto;
 import ru.yandex.practicum.filmorate.dto.review.ReviewUpdateDto;
+import ru.yandex.practicum.filmorate.enums.EventOperation;
+import ru.yandex.practicum.filmorate.enums.EventType;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
 import ru.yandex.practicum.filmorate.model.Review;
@@ -26,6 +28,7 @@ public class ReviewService {
     private final ReviewRatingService reviewRatingService;
     private final UserService userService;
     private final FilmService filmService;
+    private final FeedService feedService;
 
     @Transactional
     public ReviewResponseDto create(ReviewRequestDto dto) {
@@ -36,6 +39,8 @@ public class ReviewService {
 
         var review = ReviewMapper.mapToReview(dto);
         review = reviewRepository.create(review);
+
+        feedService.logEvent(dto.userId(), EventType.REVIEW, EventOperation.ADD, review.getId());
 
         return ReviewMapper.mapToResponseDto(review, reviewRatingService.getUseful(review.getId()));
     }
@@ -48,13 +53,18 @@ public class ReviewService {
                 .orElseThrow(() -> new NotFoundException("Отзыв с id=" + dto.reviewId() + " не найден"));
         var useful = reviewRatingService.getUseful(dto.reviewId());
 
+        feedService.logEvent(review.getUserId(), EventType.REVIEW, EventOperation.UPDATE, review.getId());
+
         return ReviewMapper.mapToResponseDto(review, useful);
     }
 
     public void delete(Long reviewId) {
         log.info("Удаление отзыва с id=\"{}\"", reviewId);
+        var review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NotFoundException("Отзыв с id=" + reviewId + " не найден"));
 
         reviewRepository.deleteById(reviewId);
+        feedService.logEvent(review.getUserId(), EventType.REVIEW, EventOperation.REMOVE, reviewId);
     }
 
     public ReviewResponseDto getById(Long reviewId) {
