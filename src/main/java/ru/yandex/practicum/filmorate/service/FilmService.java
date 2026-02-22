@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.LikeStorage;
@@ -7,10 +8,15 @@ import ru.yandex.practicum.filmorate.enums.EventOperation;
 import ru.yandex.practicum.filmorate.enums.EventType;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.dal.FilmStorage;
+import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validator.Validator;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -48,6 +54,10 @@ public class FilmService {
         return films;
     }
 
+    public Film createFilm(@Valid Film film) {
+        return filmStorage.createFilm(film);
+    }
+
     public Film getFilm(Long id) {
         log.info("Получение фильма по id {}", id);
         Validator.validateId(id, "Id фильма должен быть указан");
@@ -55,11 +65,7 @@ public class FilmService {
         return filmStorage.getFilm(id);
     }
 
-    public Film createFilm(Film film) {
-        return filmStorage.createFilm(film);
-    }
-
-    public Film updateFilm(Film newFilm) {
+    public Film updateFilm(@Valid Film newFilm) {
         checkThatFilmExists(newFilm.getId());
         return filmStorage.updateFilm(newFilm);
     }
@@ -107,12 +113,28 @@ public class FilmService {
         return filmStorage.getPopularFilms(count, genreId, year);
     }
 
-    public void checkThatFilmExists(Long id) {
+    private void checkThatFilmExists(Long id) {
         log.info("Проверить, что фильм существует.");
         if (filmStorage.checkIfNotExists(id)) {
             String errText = "Фильм с id = " + id + " не найден";
             log.error("Ошибка: {}", errText);
             throw new NotFoundException(errText);
         }
+    }
+
+    public List<FilmSendDTO> getSortedDirectorFilms(long directorId, String sortBy) {
+        Comparator<Film> comparator = null;
+
+        List<Film> films = filmStorage.getDirectorFilms(directorId);
+        if (films.isEmpty()) return new ArrayList<>();
+
+        if (sortBy.equals("year")) comparator = Comparator.comparing(Film::getReleaseDate);
+        if (sortBy.equals("likes")) comparator = Comparator.comparing(film -> film.getLikes().size());
+        if (comparator == null) throw new IllegalArgumentException("атрибут сортировки задан неверно");
+
+        return films.stream()
+                .sorted(comparator)
+                .map(FilmMapper::mapToSendDTO)
+                .toList();
     }
 }

@@ -40,4 +40,7 @@ public class FilmReceiveDTO {
 
     @NoNullElements(message = "Лайки не могут содержать null-значения")
     private final List<Long> likes;
+
+    @NoNullElements(message = "Режиссеры не могут содержать null-значения")
+    private final List<FilmDirectorReceiveDTO> directors;
 }

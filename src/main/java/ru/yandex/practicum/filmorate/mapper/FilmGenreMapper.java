@@ -2,8 +2,8 @@ package ru.yandex.practicum.filmorate.mapper;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import ru.yandex.practicum.filmorate.dto.FilmGenreSendDTO;
 import ru.yandex.practicum.filmorate.dto.FilmGenreReceiveDTO;
+import ru.yandex.practicum.filmorate.dto.FilmGenreSendDTO;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
