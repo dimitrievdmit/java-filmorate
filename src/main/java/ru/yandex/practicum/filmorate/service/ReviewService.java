@@ -35,7 +35,11 @@ public class ReviewService {
         log.info("Создание отзыва пользователем с id=\"{}\" к фильму с id=\"{}\"", dto.userId(), dto.filmId());
 
         userService.checkThatUserExists(dto.userId());
-        filmService.checkThatFilmExists(dto.filmId());
+
+        /**
+         * filmService.checkThatFilmExists(dto.filmId()); возможно лишняя
+         */
+        //filmService.checkThatFilmExists(dto.filmId());
 
         var review = ReviewMapper.mapToReview(dto);
         review = reviewRepository.create(review);

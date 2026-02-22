@@ -29,7 +29,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     private final FilmLikeRowMapper filmLikeRowMapper;
     private final FilmDirectorRowMapper filmDirectorRowMapper;
 
-
     private static final String SELECT_ALL_FILMS_QUERY = """
                 SELECT
                     f.id,
@@ -176,25 +175,25 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             """;
 
     private static final String GET_DIRECTOR_FILMS_BY_ID = """
-                    SELECT
-                    f.id,
-                    f.name,
-                    f.description,
-                    f.release_date,
-                    f.duration,
-                    f.rating_id,
-                    fd.director_id
-                    FROM films f
-                    JOIN film_director fd ON fd.film_id = f.id
-                    WHERE fd.director_id = :directorId
-                    """;
+            SELECT
+            f.id,
+            f.name,
+            f.description,
+            f.release_date,
+            f.duration,
+            f.rating_id,
+            fd.director_id
+            FROM films f
+            JOIN film_director fd ON fd.film_id = f.id
+            WHERE fd.director_id = :directorId
+            """;
 
     private static final String SELECT_FILM_DIRECTORS_BY_ID = """
-                    SELECT
-                    fd.director_id
-                    FROM film_director fd
-                    WHERE film_id = :filmId
-                    """;
+            SELECT
+            fd.director_id
+            FROM film_director fd
+            WHERE film_id = :filmId
+            """;
 
     public FilmDbStorage(
             NamedParameterJdbcTemplate jdbc,
@@ -471,19 +470,11 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         Map<Long, Set<FilmGenre>> genresMap = getFilmGenres(filmIds);
 
         // 3. Получаем лайки для указанных фильмов
-        /**
-         * 2 метода ниже требуют внимания
-         */
-        //стырый
-        Map<Long, Set<Long>> likesMap = getFilmLikes(filmIds);
-        // новый
-        // Map<Long, Set<Long>> likesMap = likeStorage.getUserLikesByFilms(filmIds);
+        Map<Long, Set<Long>> likesMap = likeStorage.getUserLikesByFilms(filmIds);
         Map<Long, Set<Long>> directorMap = getFilmDirectors(filmIds);
         // 4. Создаём новые объекты Film с дополненными данными (не меняя исходные)
-        //стырый
-        //return enrichFilms(films, genresMap, likesMap, directorMap);
 
-        return enrichFilms(films, genresMap, likesMap);
+        return enrichFilms(films, genresMap, likesMap, directorMap);
     }
 
     private Map<Long, Set<FilmGenre>> getFilmGenres(List<Long> filmIds) {
