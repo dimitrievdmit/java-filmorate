@@ -76,7 +76,8 @@ class FilmMapperTest {
                 136L,
                 genreDtos,
                 mpaDto,
-                List.of(201L, 202L)
+                List.of(201L, 202L),
+                new ArrayList<>()
         );
 
         Film domain = FilmMapper.mapToDomain(dto);
@@ -128,7 +129,8 @@ class FilmMapperTest {
                 null, null, null,
                 genreDtos,
                 new FilmRatingReceiveDTO(1),
-                null
+                null,
+                new ArrayList<>()
         );
         assertThrows(IllegalArgumentException.class,
                 () -> FilmMapper.mapToDomain(dto),
@@ -176,7 +178,8 @@ class FilmMapperTest {
                 null,                   // duration = null
                 null,                   // genres = null
                 new FilmRatingReceiveDTO(FilmRating.PG.getId()),  // mpa = PG
-                null                    // likes = null
+                null,                    // likes = null
+                new ArrayList<>()
         );
 
         Film domain = FilmMapper.mapToDomain(dto);

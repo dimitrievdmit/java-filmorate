@@ -26,4 +26,5 @@ public interface FilmStorage {
 
     boolean checkIfNotExists(Long id);
 
+    List<Film> getDirectorFilms(long directorId);
 }

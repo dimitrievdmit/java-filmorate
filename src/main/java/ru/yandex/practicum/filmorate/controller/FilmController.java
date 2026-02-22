@@ -1,18 +1,21 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.dto.FilmReceiveDTO;
+import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
+import java.util.List;
 
 @SuppressWarnings("unused")
 @RestController
@@ -34,23 +37,27 @@ public class FilmController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public FilmSendDTO createFilm(@Valid @RequestBody FilmReceiveDTO film) {
+        log.info("запрос создать фильм {}", film.getName());
         return FilmMapper.mapToSendDTO(filmService.createFilm(FilmMapper.mapToDomain(film)));
-    }
-
-    @GetMapping("/{id}")
-    public FilmSendDTO getFilm(@PathVariable Long id) {
-        return FilmMapper.mapToSendDTO((filmService.getFilm(id)));
     }
 
     @PutMapping
     public FilmSendDTO updateFilm(@Valid @RequestBody FilmReceiveDTO newFilm) {
+        log.info("запрос обновить фильм id:{} ", newFilm.getId());
         return FilmMapper.mapToSendDTO(filmService.updateFilm(FilmMapper.mapToDomain(newFilm)));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFilm(@PathVariable Long id) {
+        log.info("запрос удалить фильм id:{}", id);
         filmService.deleteFilm(id);
+    }
+
+    @GetMapping("/{id}")
+    public FilmSendDTO getFilm(@PathVariable Long id) {
+        log.info("запрос получить фильм id:{}", id);
+        return FilmMapper.mapToSendDTO((filmService.getFilm(id)));
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -73,6 +80,16 @@ public class FilmController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public FilmSendDTO filmDeleteGenre(@PathVariable Long id, @PathVariable Integer genreId) {
         return FilmMapper.mapToSendDTO(filmService.filmDeleteGenre(id, genreId));
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<FilmSendDTO> getSortedDirectorFilms(@PathVariable
+                                                    @Min(value = 1L, message = "Параметр должен быть > 0")
+                                                    int directorId,
+                                                    @RequestParam()
+                                                    @Pattern(regexp = "year|likes", message = "атрибут sortBy задан не верно")
+                                                    String sortBy) {
+        return filmService.getSortedDirectorFilms(directorId, sortBy);
     }
 
     @GetMapping("/popular")

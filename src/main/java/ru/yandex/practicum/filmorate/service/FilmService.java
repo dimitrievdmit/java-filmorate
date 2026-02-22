@@ -5,10 +5,14 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.LikeStorage;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.dal.FilmStorage;
+import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validator.Validator;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -98,6 +102,22 @@ public class FilmService {
     public Collection<Film> getPopularFilms(Long count, Integer genreId, Integer year) {
         log.info("Получение первых {} фильмов по количеству лайков с фильтрами genreId={}, year={}", count, genreId, year);
         return filmStorage.getPopularFilms(count, genreId, year);
+    }
+
+    public List<FilmSendDTO> getSortedDirectorFilms(long directorId, String sortBy) {
+        Comparator<Film> comparator = null;
+
+        List<Film> films = filmStorage.getDirectorFilms(directorId);
+        if (films.isEmpty()) return new ArrayList<>();
+
+        if (sortBy.equals("year")) comparator = Comparator.comparing(Film::getReleaseDate);
+        if (sortBy.equals("likes")) comparator = Comparator.comparing(film -> film.getLikes().size());
+        if (comparator == null) throw new IllegalArgumentException("атрибут сортировки задан неверно");
+
+        return films.stream()
+                .sorted(comparator)
+                .map(FilmMapper::mapToSendDTO)
+                .toList();
     }
 
     public void checkThatFilmExists(Long id) {
