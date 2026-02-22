@@ -481,9 +481,9 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         Map<Long, Set<Long>> directorMap = getFilmDirectors(filmIds);
         // 4. Создаём новые объекты Film с дополненными данными (не меняя исходные)
         //стырый
-        //return enrichFilms(films, genresMap, likesMap, directorMap);
-
-        return enrichFilms(films, genresMap, likesMap);
+        return enrichFilms(films, genresMap, likesMap, directorMap);
+        //новый
+       // return enrichFilms(films, genresMap, likesMap);
     }
 
     private Map<Long, Set<FilmGenre>> getFilmGenres(List<Long> filmIds) {
