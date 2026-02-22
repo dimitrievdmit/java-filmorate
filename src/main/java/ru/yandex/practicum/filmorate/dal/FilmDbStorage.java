@@ -143,25 +143,25 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             """;
 
     private static final String GET_DIRECTOR_FILMS_BY_ID = """
-            SELECT
-            f.id,
-            f.name,
-            f.description,
-            f.release_date,
-            f.duration,
-            f.rating_id,
-            fd.director_id
-            FROM films f
-            JOIN film_director fd ON fd.film_id = f.id
-            WHERE fd.director_id = :directorId
-            """;
+                    SELECT
+                    f.id,
+                    f.name,
+                    f.description,
+                    f.release_date,
+                    f.duration,
+                    f.rating_id,
+                    fd.director_id
+                    FROM films f
+                    JOIN film_director fd ON fd.film_id = f.id
+                    WHERE fd.director_id = :directorId
+                    """;
 
     private static final String SELECT_FILM_DIRECTORS_BY_ID = """
-            SELECT
-            fd.director_id
-            FROM film_director fd
-            WHERE film_id = :filmId
-            """;
+                    SELECT
+                    fd.director_id
+                    FROM film_director fd
+                    WHERE film_id = :filmId
+                    """;
 
 
     public FilmDbStorage(
@@ -472,19 +472,17 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     private Map<Long, Set<Long>> getFilmDirectors(List<Long> filmIds) {
         // Получаем всех режиссеров для указанных фильмов
         // Запрос возвращает пары (film_id, user_id)
-        Map<Long, Set<Long>> get = jdbc.query(
+        return jdbc.query(
                         SELECT_DIRECTORS_QUERY,
                         Map.of("filmIds", filmIds),
                         filmDirectorRowMapper
                 )
                 .stream()
-                .peek(System.out::println)
+
                 .collect(Collectors.groupingBy(
                         Map.Entry::getKey,
                         Collectors.mapping(Map.Entry::getValue, Collectors.toSet())
                 ));
-        System.out.println("1111" + get);
-        return get;
     }
 
     private List<Film> enrichFilms(
@@ -493,9 +491,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             Map<Long, Set<Long>> likesMap,
             Map<Long, Set<Long>> directorMap
     ) {
-        System.out.println("2222"+directorMap);
         return films.stream()
-                .sorted(Comparator.comparing(Film::getId))
                 .map(film -> {
                     Film newFilm = new Film();
                     // Копируем все поля из исходного фильма
