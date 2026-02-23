@@ -221,9 +221,8 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         // 2. Получаем все жанры для указанных фильмов
         // 3. Получаем все лайки для указанных фильмов
         // 4. Дополняем каждый фильм собранными данными
-        getFilmAdditionalData(films);
 
-        return films;
+        return getFilmAdditionalData(films);
     }
 
     @Override

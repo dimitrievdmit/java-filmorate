@@ -127,11 +127,7 @@ public class FilmService {
             return Collections.emptyList();
         }
 
-        // Подгружаем каждый фильм по отдельности, чтобы гарантированно были genres и likes
-        List<Film> films = userLikes.stream()
-                .map(filmStorage::getFilm)
-                .filter(Objects::nonNull)
-                .toList();
+        Collection<Film> films = filmStorage.getFilms(new ArrayList<>(userLikes));
 
         // Сортируем по популярности (кол-во лайков) по убыванию
         return films.stream()
