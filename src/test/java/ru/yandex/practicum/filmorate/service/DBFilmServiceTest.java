@@ -18,6 +18,7 @@ public class DBFilmServiceTest extends BaseFilmServiceTest {
 
     private final FilmService filmService;
     private final UserService userService;
+    private final DirectorService directorService;
 
     @Override
     protected FilmService getFilmService() {
@@ -27,6 +28,11 @@ public class DBFilmServiceTest extends BaseFilmServiceTest {
     @Override
     protected UserService getUserService() {
         return userService;
+    }
+
+    @Override
+    protected DirectorService getDirectorService() {
+        return directorService;
     }
 }
 
