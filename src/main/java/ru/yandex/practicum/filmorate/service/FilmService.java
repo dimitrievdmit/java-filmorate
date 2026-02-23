@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.LikeStorage;
+import ru.yandex.practicum.filmorate.enums.EventOperation;
+import ru.yandex.practicum.filmorate.enums.EventType;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.dal.FilmStorage;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -17,17 +19,20 @@ public class FilmService {
     private final LikeStorage likeStorage;
     private final UserService userService;
     private final GenreService genreService;
+    private final FeedService feedService;
 
     public FilmService(
             FilmStorage filmStorage,
             LikeStorage likeStorage,
             UserService userService,
-            GenreService genreService
+            GenreService genreService,
+            FeedService feedService
     ) {
         this.filmStorage = filmStorage;
         this.likeStorage = likeStorage;
         this.userService = userService;
         this.genreService = genreService;
+        this.feedService = feedService;
     }
 
     public Collection<Film> getAllFilms() {
@@ -69,6 +74,7 @@ public class FilmService {
         log.info("Добавление лайка фильму {} пользователем {}", id, userId);
         Film film = filmStorage.getFilm(id);
         userService.checkThatUserExists(userId);
+        feedService.logEvent(userId, EventType.LIKE, EventOperation.ADD, id);
         return likeStorage.filmAddLike(film, userId);
     }
 
@@ -76,6 +82,7 @@ public class FilmService {
         log.info("Удаление лайка фильму {} пользователем {}", id, userId);
         Film film = filmStorage.getFilm(id);
         userService.checkThatUserExists(userId);
+        feedService.logEvent(userId, EventType.LIKE, EventOperation.REMOVE, id);
 
         return likeStorage.filmRemoveLike(film, userId);
     }
