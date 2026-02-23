@@ -4,8 +4,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.dto.UserReceiveDTO;
 import ru.yandex.practicum.filmorate.dto.UserSendDTO;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.enums.FriendshipStatus;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.HashMap;
 import java.util.Map;
