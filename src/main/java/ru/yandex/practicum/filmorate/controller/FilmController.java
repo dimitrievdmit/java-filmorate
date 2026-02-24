@@ -11,6 +11,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmReceiveDTO;
 import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
+import ru.yandex.practicum.filmorate.dto.search.SearchRequest;
+import ru.yandex.practicum.filmorate.enums.FilmSearchType;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
@@ -103,6 +105,28 @@ public class FilmController {
             @RequestParam(required = false) Integer year
     ) {
         return filmService.getPopularFilms(count, genreId, year)
+                .stream()
+                .map(FilmMapper::mapToSendDTO)
+                .toList();
+    }
+
+    @GetMapping("/common")
+    public Collection<FilmSendDTO> getCommonFilms(
+            @RequestParam
+            @Positive(message = "Id пользователя должен быть положительным") Long userId,
+            @RequestParam
+            @Positive(message = "Id друга должен быть положительным") Long friendId
+    ) {
+        return filmService.getCommonFilms(userId, friendId)
+                .stream()
+                .map(FilmMapper::mapToSendDTO)
+                .toList();
+    }
+
+    @GetMapping("/search")
+    public Collection<FilmSendDTO> getFilmsByTitleAndDirectorName(@ModelAttribute @Valid SearchRequest searchRequest) {
+        FilmSearchType filmSearchType = FilmSearchType.fromValue(searchRequest.getBy());
+        return filmService.getFilmsByTitleAndDirectorName(searchRequest.getQuery(), filmSearchType)
                 .stream()
                 .map(FilmMapper::mapToSendDTO)
                 .toList();

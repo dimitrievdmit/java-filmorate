@@ -1,23 +1,19 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.FilmStorage;
 import ru.yandex.practicum.filmorate.dal.LikeStorage;
+import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.enums.EventOperation;
 import ru.yandex.practicum.filmorate.enums.EventType;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.dal.FilmStorage;
-import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
+import ru.yandex.practicum.filmorate.enums.FilmSearchType;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validator.Validator;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -54,10 +50,6 @@ public class FilmService {
         return films;
     }
 
-    public Film createFilm(@Valid Film film) {
-        return filmStorage.createFilm(film);
-    }
-
     public Film getFilm(Long id) {
         log.info("Получение фильма по id {}", id);
         Validator.validateId(id, "Id фильма должен быть указан");
@@ -65,7 +57,11 @@ public class FilmService {
         return filmStorage.getFilm(id);
     }
 
-    public Film updateFilm(@Valid Film newFilm) {
+    public Film createFilm(Film film) {
+        return filmStorage.createFilm(film);
+    }
+
+    public Film updateFilm(Film newFilm) {
         checkThatFilmExists(newFilm.getId());
         return filmStorage.updateFilm(newFilm);
     }
@@ -113,7 +109,39 @@ public class FilmService {
         return filmStorage.getPopularFilms(count, genreId, year);
     }
 
-    private void checkThatFilmExists(Long id) {
+    public Collection<Film> getCommonFilms(Long userId, Long friendId) {
+        log.info("Получение общих фильмов для пользователей {} и {}", userId, friendId);
+
+        // Проверка существования пользователей
+        userService.checkThatUserExists(userId);
+        userService.checkThatUserExists(friendId);
+
+        // Получаем карты: userId -> Set<filmId>
+        Map<Long, Set<Long>> filmsByUsers = likeStorage.getFilmLikesByUsers(List.of(userId, friendId));
+
+        Set<Long> userLikes = new HashSet<>(filmsByUsers.getOrDefault(userId, Collections.emptySet()));
+        Set<Long> friendLikes = new HashSet<>(filmsByUsers.getOrDefault(friendId, Collections.emptySet()));
+
+        // Пересечение — общие фильмы
+        userLikes.retainAll(friendLikes);
+        if (userLikes.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Collection<Film> films = filmStorage.getFilms(new ArrayList<>(userLikes));
+
+        // Сортируем по популярности (кол-во лайков) по убыванию
+        return films.stream()
+                .sorted(Comparator.comparingInt((Film f) -> f.getLikes() == null ? 0 : f.getLikes().size()).reversed())
+                .toList();
+    }
+
+    public Collection<Film> getFilmsByTitleAndDirectorName(String query, FilmSearchType filmSearchType) {
+        log.info("Поиск фильмов по названию и/или режиссёру с query={} и filmSearchType={}", query, filmSearchType);
+        return filmStorage.getFilmsByTitleAndDirectorName(query, filmSearchType);
+    }
+
+    public void checkThatFilmExists(Long id) {
         log.info("Проверить, что фильм существует.");
         if (filmStorage.checkIfNotExists(id)) {
             String errText = "Фильм с id = " + id + " не найден";

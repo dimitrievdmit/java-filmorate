@@ -86,8 +86,6 @@ CREATE INDEX IF NOT EXISTS idx_user_feed_time ON user_feed(timestamp);
 
 -- add-director REALISATION by Stingray1908
 -- изменить README
-DELETE FROM director_film;
-DELETE FROM directors;
 
 CREATE TABLE IF NOT EXISTS directors (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
