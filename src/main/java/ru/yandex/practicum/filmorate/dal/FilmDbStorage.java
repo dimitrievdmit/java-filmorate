@@ -444,11 +444,15 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         List<Long> filmIds = films.stream()
                 .map(Film::getId)
                 .toList();
-        Map<Long, Set<Long>> filmDirectors = this.getFilmDirectors(filmIds);
+        // Получаем жанры для фильмов
+        Map<Long, Set<FilmGenre>> genresMap = this.getFilmGenres(filmIds);
+        // Получаем лайки для фильмов
+        Map<Long, Set<Long>> likesMap = likeStorage.getUserLikesByFilms(filmIds);
+        // Получаем режиссёров для фильмов (как было)
+        Map<Long, Set<Long>> directorsMap = this.getFilmDirectors(filmIds);
 
-        return films.stream()
-                .peek(f -> f.setDirectors(filmDirectors.get(f.getId())))
-                .toList();
+        return enrichFilms(films, genresMap, likesMap, directorsMap);
+
     }
 
     @Override
