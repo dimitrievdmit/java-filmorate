@@ -43,6 +43,7 @@ public class User {
         friends.put(id, status);
     }
 
+    @SuppressWarnings("unused")
     public void removeFriend(Long id) {
         friends.remove(id);
     }

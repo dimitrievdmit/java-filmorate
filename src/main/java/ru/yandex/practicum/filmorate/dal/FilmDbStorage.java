@@ -11,8 +11,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmDirectorRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmGenreRowMapper;
-import ru.yandex.practicum.filmorate.dal.mappers.FilmLikeRowMapper;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
+import ru.yandex.practicum.filmorate.enums.FilmSearchType;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.sql.Timestamp;
@@ -26,7 +26,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     private final LikeStorage likeStorage;
     private final FilmGenreRowMapper filmGenreRowMapper;
-    private final FilmLikeRowMapper filmLikeRowMapper;
     private final FilmDirectorRowMapper filmDirectorRowMapper;
 
     private static final String SELECT_ALL_FILMS_QUERY = """
@@ -92,23 +91,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             LIMIT :count
             """;
 
-    private static final String SELECT_LIKES_QUERY = """
-                SELECT
-                    fl.film_id,
-                    fl.user_id
-                FROM film_likes fl
-                WHERE fl.film_id IN (:filmIds)
-            """;
-
-    private static final String SELECT_DIRECTORS_QUERY = """
-                SELECT
-                    fd.film_id,
-                    fd.director_id
-                FROM film_director fd
-                WHERE fd.film_id IN (:filmIds)
-            """;
-
-    private static final String SELECT_TOP_FILMS_QUERY = """
+    private static final String SELECT_TOP_FILMS_BY_TITLE_AND_DIRECTOR_NAME_QUERY = """
                 SELECT
                     f.id,
                     f.name,
@@ -118,9 +101,24 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                     f.rating_id
                 FROM films f
                 LEFT JOIN film_likes fl ON f.id = fl.film_id
+                LEFT JOIN (
+                    SELECT fd.film_id, d.name AS director_name
+                    FROM film_director fd
+                    JOIN directors d ON fd.director_id = d.id
+                ) AS director_data ON f.id = director_data.film_id
+                WHERE (:filmName IS NOT NULL AND LOWER(f.name) LIKE :filmName)
+                   OR (:directorName IS NOT NULL AND LOWER(director_data.director_name) LIKE :directorName)
                 GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.rating_id
-                ORDER BY COUNT(fl.user_id) DESC
-                LIMIT :count
+                ORDER BY COUNT(fl.user_id) DESC;
+            """;
+
+
+    private static final String SELECT_DIRECTORS_QUERY = """
+                SELECT
+                    fd.film_id,
+                    fd.director_id
+                FROM film_director fd
+                WHERE fd.film_id IN (:filmIds)
             """;
 
     private static final String INSERT_QUERY = """
@@ -140,12 +138,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     private static final String DELETE_QUERY = "DELETE FROM films WHERE id = :id";
 
-
-    private static final String INSERT_LIKE_QUERY = """
-                INSERT INTO film_likes (film_id, user_id)
-                VALUES (:filmId, :userId)
-            """;
-
     private static final String INSERT_GENRE_QUERY = """
                 INSERT INTO film_genres (film_id, genre_id)
                 VALUES (:filmId, :genreId)
@@ -156,12 +148,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 VALUES (:filmId, :director_id)
             """;
 
-    private static final String DELETE_LIKES_QUERY = "DELETE FROM film_likes WHERE film_id = :filmId";
-    private static final String DELETE_SINGLE_LIKE_QUERY = """
-                DELETE FROM film_likes
-                WHERE film_id = :filmId AND user_id = :userId
-            """;
-
     private static final String DELETE_GENRES_QUERY = "DELETE FROM film_genres WHERE film_id = :filmId";
     private static final String DELETE_SINGLE_GENRE_QUERY = """
                 DELETE FROM film_genres
@@ -169,6 +155,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             """;
 
     private static final String DELETE_DIRECTOR_QUERY = "DELETE FROM film_director WHERE film_id = :filmId";
+    @SuppressWarnings("unused")
     private static final String DELETE_SINGLE_DIRECTOR_QUERY = """
                 DELETE FROM film_director
                 WHERE film_id = :filmId AND director_id = :genreId
@@ -188,6 +175,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             WHERE fd.director_id = :directorId
             """;
 
+    @SuppressWarnings("unused")
     private static final String SELECT_FILM_DIRECTORS_BY_ID = """
             SELECT
             fd.director_id
@@ -200,28 +188,26 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             RowMapper<Film> mapper,
             FilmGenreRowMapper filmGenreRowMapper,
             LikeStorage likeStorage,
-            FilmLikeRowMapper filmLikeRowMapper,
             FilmDirectorRowMapper filmDirectorRowMapper
     ) {
         super(jdbc, mapper);
         this.filmGenreRowMapper = filmGenreRowMapper;
         this.likeStorage = likeStorage;
-        this.filmLikeRowMapper = filmLikeRowMapper;
         this.filmDirectorRowMapper = filmDirectorRowMapper;
     }
 
     private Collection<Film> getManyFilmsWithAdditionalData(String query, Map<String, Object> params) {
-        // 1. Получаем основные данные о фильмах (без жанров и лайков)
+        // Получаем основные данные о фильмах (без жанров и лайков)
         List<Film> films = findMany(query, params);
 
         if (films.isEmpty()) {
             return films;
         }
 
-        // 2. Получаем все жанры для указанных фильмов
-        // 3. Получаем все лайки для указанных фильмов
-        // 4. Дополняем каждый фильм собранными данными
-
+        // Получаем жанры для указанных фильмов
+        // Получаем лайки для указанных фильмов
+        // Получаем режиссёров для указанных фильмов
+        // Дополняем каждый фильм собранными данными
         return getFilmAdditionalData(films);
     }
 
@@ -237,12 +223,31 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         params.put("genreId", genreId);
         params.put("year", year);
 
-        List<Film> films = findMany(SELECT_TOP_FILMS_WITH_FILTERS_QUERY, params);
-        if (films.isEmpty()) {
-            return films;
+        return getManyFilmsWithAdditionalData(SELECT_TOP_FILMS_WITH_FILTERS_QUERY, params);
+    }
+
+    @Override
+    public Collection<Film> getFilmsByTitleAndDirectorName(String query, FilmSearchType filmSearchType) {
+        Map<String, Object> params = new HashMap<>();
+        String queryPattern = '%' + query.toLowerCase(Locale.ROOT) + '%';
+        switch (filmSearchType) {
+            case TITLE:
+                params.put("filmName", queryPattern);
+                params.put("directorName", null);
+                break;
+            case DIRECTOR:
+                params.put("filmName", null);
+                params.put("directorName", queryPattern);
+                break;
+            case TITLE_AND_DIRECTOR:
+                params.put("filmName", queryPattern);
+                params.put("directorName", queryPattern);
+                break;
+            default:
+                throw new IllegalArgumentException("Некорректное значение параметра типа поиска filmSearchType.");
         }
 
-        return getFilmAdditionalData(films);
+        return getManyFilmsWithAdditionalData(SELECT_TOP_FILMS_BY_TITLE_AND_DIRECTOR_NAME_QUERY, params);
     }
 
     @Override
@@ -337,53 +342,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         }
     }
 
-    /**
-     * Обновляет лайки фильма в БД.
-     * При reset=true сначала удаляет все существующие лайки, затем добавляет новые.
-     * При reset=false только добавляет новые (без удаления).
-     */
-    private void updateFilmLikes(Film film, long filmId, Boolean reset) {
-        if (reset) {
-            update(DELETE_LIKES_QUERY, Map.of("filmId", filmId), false);
-        }
-
-        if (film.getLikes() != null && !film.getLikes().isEmpty()) {
-            // Формируем массив параметров для каждого лайка
-            SqlParameterSource[] batch = film.getLikes().stream()
-                    .map(userId -> new MapSqlParameterSource()
-                            .addValue("filmId", filmId)
-                            .addValue("userId", userId))
-                    .toArray(SqlParameterSource[]::new);
-
-            // Выполняем batch-вставку
-            jdbc.batchUpdate(INSERT_LIKE_QUERY, batch);
-        }
-    }
-
-    @Override
-    public Film filmAddLike(Long id, Long userId) {
-        Film film = getFilm(id);
-        Map<String, Object> params = Map.of(
-                "filmId", id,
-                "userId", userId
-        );
-        update(INSERT_LIKE_QUERY, params, true);
-        film.addLike(userId);
-        return film;
-    }
-
-    @Override
-    public Film removeLike(Long id, Long userId) {
-        Film film = getFilm(id);
-        Map<String, Object> params = Map.of(
-                "filmId", id,
-                "userId", userId
-        );
-        update(DELETE_SINGLE_LIKE_QUERY, params, true);
-        film.removeLike(userId);
-        return film;
-    }
-
     @Override
     public Film filmAddGenre(Long id, Integer genreId) {
         Film film = getFilm(id);
@@ -436,6 +394,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         return newFilm;
     }
 
+    @Override
     @Transactional(rollbackFor = Throwable.class)
     public List<Film> getDirectorFilms(long directorId) {
 
@@ -485,22 +444,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 )
                 .stream()
                 // Группируем по film_id: для каждого фильма — набор жанров
-                .collect(Collectors.groupingBy(
-                        Map.Entry::getKey,
-                        Collectors.mapping(Map.Entry::getValue, Collectors.toSet())
-                ));
-    }
-
-    private Map<Long, Set<Long>> getFilmLikes(List<Long> filmIds) {
-        // Получаем все лайки для указанных фильмов
-        // Запрос возвращает пары (film_id, user_id)
-        return jdbc.query(
-                        SELECT_LIKES_QUERY,
-                        Map.of("filmIds", filmIds),
-                        filmLikeRowMapper
-                )
-                .stream()
-                // Группируем по film_id: для каждого фильма — набор ID пользователей, поставивших лайк
                 .collect(Collectors.groupingBy(
                         Map.Entry::getKey,
                         Collectors.mapping(Map.Entry::getValue, Collectors.toSet())

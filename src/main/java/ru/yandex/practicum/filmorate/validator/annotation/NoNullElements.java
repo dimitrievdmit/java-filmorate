@@ -6,7 +6,7 @@ import ru.yandex.practicum.filmorate.validator.implementation.NoNullElementsVali
 
 import java.lang.annotation.*;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
