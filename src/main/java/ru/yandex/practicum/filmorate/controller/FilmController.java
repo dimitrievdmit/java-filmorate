@@ -107,4 +107,17 @@ public class FilmController {
                 .map(FilmMapper::mapToSendDTO)
                 .toList();
     }
+
+    @GetMapping("/common")
+    public Collection<FilmSendDTO> getCommonFilms(
+            @RequestParam
+            @Positive(message = "Id пользователя должен быть положительным") Long userId,
+            @RequestParam
+            @Positive(message = "Id друга должен быть положительным") Long friendId
+    ) {
+        return filmService.getCommonFilms(userId, friendId)
+                .stream()
+                .map(FilmMapper::mapToSendDTO)
+                .toList();
+    }
 }
