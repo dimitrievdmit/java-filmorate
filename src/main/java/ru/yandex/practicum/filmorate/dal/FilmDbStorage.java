@@ -89,14 +89,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             LIMIT :count
             """;
 
-    private static final String SELECT_LIKES_QUERY = """
-                SELECT
-                    fl.film_id,
-                    fl.user_id
-                FROM film_likes fl
-                WHERE fl.film_id IN (:filmIds)
-            """;
-
     private static final String SELECT_DIRECTORS_QUERY = """
                 SELECT
                     fd.film_id,
@@ -124,23 +116,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                    OR (:directorName IS NOT NULL AND LOWER(director_data.director_name) LIKE :directorName)
                 GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.rating_id
                 ORDER BY COUNT(fl.user_id) DESC;
-            """;
-
-
-
-    private static final String SELECT_TOP_FILMS_QUERY = """
-                SELECT
-                    f.id,
-                    f.name,
-                    f.description,
-                    f.release_date,
-                    f.duration,
-                    f.rating_id
-                FROM films f
-                LEFT JOIN film_likes fl ON f.id = fl.film_id
-                GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.rating_id
-                ORDER BY COUNT(fl.user_id) DESC
-                LIMIT :count
             """;
 
     private static final String INSERT_QUERY = """
@@ -175,8 +150,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 VALUES (:filmId, :director_id)
             """;
 
-    private static final String DELETE_LIKES_QUERY = "DELETE FROM film_likes WHERE film_id = :filmId";
-    private static final String DELETE_SINGLE_LIKE_QUERY = """
+        private static final String DELETE_SINGLE_LIKE_QUERY = """
                 DELETE FROM film_likes
                 WHERE film_id = :filmId AND user_id = :userId
             """;
