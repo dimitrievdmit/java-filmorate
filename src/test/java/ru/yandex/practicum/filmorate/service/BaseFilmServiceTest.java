@@ -548,8 +548,6 @@ public abstract class BaseFilmServiceTest {
         assertTrue(filmsList.getFirst().getDirectors().contains(directorId3));
     }
 
-}
-
     @Test
     void shouldReturnEmptyList_WhenNoCommonLikes() {
         // Создаем двух пользователей с уникальными данными

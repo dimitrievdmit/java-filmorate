@@ -124,9 +124,9 @@ public class FilmController {
     }
 
     @GetMapping("/search")
-    public Collection<FilmSendDTO> getFilmsByNameAndDirectorName(@ModelAttribute @Valid SearchRequest searchRequest) {
+    public Collection<FilmSendDTO> getFilmsByTitleAndDirectorName(@ModelAttribute @Valid SearchRequest searchRequest) {
         FilmSearchType filmSearchType = FilmSearchType.fromValue(searchRequest.getBy());
-        return filmService.getFilmsByNameAndDirectorName(searchRequest.getQuery(), filmSearchType)
+        return filmService.getFilmsByTitleAndDirectorName(searchRequest.getQuery(), filmSearchType)
                 .stream()
                 .map(FilmMapper::mapToSendDTO)
                 .toList();

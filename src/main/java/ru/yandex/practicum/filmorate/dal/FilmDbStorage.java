@@ -91,7 +91,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             LIMIT :count
             """;
 
-    private static final String SELECT_TOP_FILMS_BY_NAME_AND_DIRECTOR_NAME_QUERY = """
+    private static final String SELECT_TOP_FILMS_BY_TITLE_AND_DIRECTOR_NAME_QUERY = """
                 SELECT
                     f.id,
                     f.name,
@@ -227,7 +227,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     }
 
     @Override
-    public Collection<Film> getFilmsByNameAndDirectorName(String query, FilmSearchType filmSearchType) {
+    public Collection<Film> getFilmsByTitleAndDirectorName(String query, FilmSearchType filmSearchType) {
         Map<String, Object> params = new HashMap<>();
         String queryPattern = '%' + query.toLowerCase(Locale.ROOT) + '%';
         switch (filmSearchType) {
@@ -247,7 +247,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 throw new IllegalArgumentException("Некорректное значение параметра типа поиска filmSearchType.");
         }
 
-        return getManyFilmsWithAdditionalData(SELECT_TOP_FILMS_BY_NAME_AND_DIRECTOR_NAME_QUERY, params);
+        return getManyFilmsWithAdditionalData(SELECT_TOP_FILMS_BY_TITLE_AND_DIRECTOR_NAME_QUERY, params);
     }
 
     @Override

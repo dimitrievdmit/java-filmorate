@@ -136,9 +136,9 @@ public class FilmService {
                 .toList();
     }
 
-    public Collection<Film> getFilmsByNameAndDirectorName(String query, FilmSearchType filmSearchType) {
+    public Collection<Film> getFilmsByTitleAndDirectorName(String query, FilmSearchType filmSearchType) {
         log.info("Поиск фильмов по названию и/или режиссёру с query={} и filmSearchType={}", query, filmSearchType);
-        return filmStorage.getFilmsByNameAndDirectorName(query, filmSearchType);
+        return filmStorage.getFilmsByTitleAndDirectorName(query, filmSearchType);
     }
 
     public void checkThatFilmExists(Long id) {
