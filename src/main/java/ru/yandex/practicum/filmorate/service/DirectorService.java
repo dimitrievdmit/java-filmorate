@@ -53,7 +53,7 @@ public class DirectorService {
                 .toList();
     }
 
-    private void checkThatDirectorExists(Long id) {
+    protected void checkThatDirectorExists(Long id) {
         if (directorStorage.checkIfNotExists(id)) {
             String errText = "Режиссер с id = " + id + " не найден";
             log.error("Ошибка: {}", errText);

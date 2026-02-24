@@ -444,6 +444,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
         MapSqlParameterSource params = new MapSqlParameterSource("directorId", directorId);
         List<Film> films = jdbc.query(GET_DIRECTOR_FILMS_BY_ID, params, mapper);
+        log.info(films.toString());
         List<Long> filmIds = films.stream()
                 .map(Film::getId)
                 .toList();
@@ -475,9 +476,9 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
          * 2 метода ниже требуют внимания
          */
         //стырый
-        Map<Long, Set<Long>> likesMap = getFilmLikes(filmIds);
+        //Map<Long, Set<Long>> likesMap = getFilmLikes(filmIds);
         // новый
-        // Map<Long, Set<Long>> likesMap = likeStorage.getUserLikesByFilms(filmIds);
+         Map<Long, Set<Long>> likesMap = likeStorage.getUserLikesByFilms(filmIds);
         Map<Long, Set<Long>> directorMap = getFilmDirectors(filmIds);
         // 4. Создаём новые объекты Film с дополненными данными (не меняя исходные)
         //стырый

@@ -126,6 +126,7 @@ public class FilmService {
         Comparator<Film> comparator = null;
 
         List<Film> films = filmStorage.getDirectorFilms(directorId);
+        log.info(films.toString());
         if (films.isEmpty()) return new ArrayList<>();
 
         if (sortBy.equals("year")) comparator = Comparator.comparing(Film::getReleaseDate);
