@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.dal;
 
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.RowMapper;
@@ -52,7 +51,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 FROM films f
                 WHERE f.id = :id
             """;
-
 
     private static final String SELECT_MANY_FILMS_QUERY = """
                 SELECT
@@ -139,7 +137,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             """;
 
     private static final String DELETE_QUERY = "DELETE FROM films WHERE id = :id";
-
 
     private static final String INSERT_LIKE_QUERY = """
                 INSERT INTO film_likes (film_id, user_id)
@@ -489,22 +486,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 )
                 .stream()
                 // Группируем по film_id: для каждого фильма — набор жанров
-                .collect(Collectors.groupingBy(
-                        Map.Entry::getKey,
-                        Collectors.mapping(Map.Entry::getValue, Collectors.toSet())
-                ));
-    }
-
-    private Map<Long, Set<Long>> getFilmLikes(List<Long> filmIds) {
-        // Получаем все лайки для указанных фильмов
-        // Запрос возвращает пары (film_id, user_id)
-        return jdbc.query(
-                        SELECT_LIKES_QUERY,
-                        Map.of("filmIds", filmIds),
-                        filmLikeRowMapper
-                )
-                .stream()
-                // Группируем по film_id: для каждого фильма — набор ID пользователей, поставивших лайк
                 .collect(Collectors.groupingBy(
                         Map.Entry::getKey,
                         Collectors.mapping(Map.Entry::getValue, Collectors.toSet())

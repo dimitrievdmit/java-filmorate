@@ -26,7 +26,7 @@ public class DirectorDBStorage extends BaseDBRepository<Director> implements Dir
 
     private static final String SELECT_DIRECTOR_BY_ID = "SELECT * FROM directors WHERE id = :id";
 
-    private static final String SELECT_ALL_DIRECTORS = "SELECT * FROM directors ORDER BY id DESC";
+    private static final String SELECT_ALL_DIRECTORS = "SELECT * FROM directors ORDER BY id ASC";
 
     @Override
     public Director createDirector(Director director) {
