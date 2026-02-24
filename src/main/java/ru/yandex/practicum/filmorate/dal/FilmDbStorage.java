@@ -10,8 +10,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmDirectorRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmGenreRowMapper;
-import ru.yandex.practicum.filmorate.dal.mappers.FilmLikeRowMapper;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
+import ru.yandex.practicum.filmorate.enums.FilmSearchType;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.sql.Timestamp;
@@ -25,7 +25,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     private final LikeStorage likeStorage;
     private final FilmGenreRowMapper filmGenreRowMapper;
-    private final FilmLikeRowMapper filmLikeRowMapper;
     private final FilmDirectorRowMapper filmDirectorRowMapper;
 
     private static final String SELECT_ALL_FILMS_QUERY = """
@@ -106,6 +105,29 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 WHERE fd.film_id IN (:filmIds)
             """;
 
+    private static final String SELECT_TOP_FILMS_BY_TITLE_AND_DIRECTOR_NAME_QUERY = """
+                SELECT
+                    f.id,
+                    f.name,
+                    f.description,
+                    f.release_date,
+                    f.duration,
+                    f.rating_id
+                FROM films f
+                LEFT JOIN film_likes fl ON f.id = fl.film_id
+                LEFT JOIN (
+                    SELECT fd.film_id, d.name AS director_name
+                    FROM film_director fd
+                    JOIN directors d ON fd.director_id = d.id
+                ) AS director_data ON f.id = director_data.film_id
+                WHERE (:filmName IS NOT NULL AND LOWER(f.name) LIKE :filmName)
+                   OR (:directorName IS NOT NULL AND LOWER(director_data.director_name) LIKE :directorName)
+                GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.rating_id
+                ORDER BY COUNT(fl.user_id) DESC;
+            """;
+
+
+
     private static final String SELECT_TOP_FILMS_QUERY = """
                 SELECT
                     f.id,
@@ -166,58 +188,59 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             """;
 
     private static final String DELETE_DIRECTOR_QUERY = "DELETE FROM film_director WHERE film_id = :filmId";
+    @SuppressWarnings("unused")
     private static final String DELETE_SINGLE_DIRECTOR_QUERY = """
                 DELETE FROM film_director
                 WHERE film_id = :filmId AND director_id = :genreId
             """;
 
     private static final String GET_DIRECTOR_FILMS_BY_ID = """
-            SELECT
-            f.id,
-            f.name,
-            f.description,
-            f.release_date,
-            f.duration,
-            f.rating_id,
-            fd.director_id
-            FROM films f
-            JOIN film_director fd ON fd.film_id = f.id
-            WHERE fd.director_id = :directorId
-            """;
+                    SELECT
+                    f.id,
+                    f.name,
+                    f.description,
+                    f.release_date,
+                    f.duration,
+                    f.rating_id,
+                    fd.director_id
+                    FROM films f
+                    JOIN film_director fd ON fd.film_id = f.id
+                    WHERE fd.director_id = :directorId
+                    """;
 
+    @SuppressWarnings("unused")
     private static final String SELECT_FILM_DIRECTORS_BY_ID = """
-            SELECT
-            fd.director_id
-            FROM film_director fd
-            WHERE film_id = :filmId
-            """;
+                    SELECT
+                    fd.director_id
+                    FROM film_director fd
+                    WHERE film_id = :filmId
+                    """;
 
     public FilmDbStorage(
             NamedParameterJdbcTemplate jdbc,
             RowMapper<Film> mapper,
             FilmGenreRowMapper filmGenreRowMapper,
             LikeStorage likeStorage,
-            FilmLikeRowMapper filmLikeRowMapper,
             FilmDirectorRowMapper filmDirectorRowMapper
     ) {
         super(jdbc, mapper);
         this.filmGenreRowMapper = filmGenreRowMapper;
         this.likeStorage = likeStorage;
-        this.filmLikeRowMapper = filmLikeRowMapper;
         this.filmDirectorRowMapper = filmDirectorRowMapper;
     }
 
     private Collection<Film> getManyFilmsWithAdditionalData(String query, Map<String, Object> params) {
-        // 1. Получаем основные данные о фильмах (без жанров и лайков)
+        // Получаем основные данные о фильмах (без жанров и лайков)
         List<Film> films = findMany(query, params);
 
         if (films.isEmpty()) {
             return films;
         }
 
-        // 2. Получаем все жанры для указанных фильмов
-        // 3. Получаем все лайки для указанных фильмов
-        // 4. Дополняем каждый фильм собранными данными
+        // Получаем жанры для указанных фильмов
+        // Получаем лайки для указанных фильмов
+        // Получаем режиссёров для указанных фильмов
+        // Дополняем каждый фильм собранными данными
         return getFilmAdditionalData(films);
     }
 
@@ -233,12 +256,31 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         params.put("genreId", genreId);
         params.put("year", year);
 
-        List<Film> films = findMany(SELECT_TOP_FILMS_WITH_FILTERS_QUERY, params);
-        if (films.isEmpty()) {
-            return films;
+        return getManyFilmsWithAdditionalData(SELECT_TOP_FILMS_WITH_FILTERS_QUERY, params);
+    }
+
+    @Override
+    public Collection<Film> getFilmsByTitleAndDirectorName(String query, FilmSearchType filmSearchType) {
+        Map<String, Object> params = new HashMap<>();
+        String queryPattern = '%' + query.toLowerCase(Locale.ROOT) + '%';
+        switch (filmSearchType) {
+            case TITLE:
+                params.put("filmName", queryPattern);
+                params.put("directorName", null);
+                break;
+            case DIRECTOR:
+                params.put("filmName", null);
+                params.put("directorName", queryPattern);
+                break;
+            case TITLE_AND_DIRECTOR:
+                params.put("filmName", queryPattern);
+                params.put("directorName", queryPattern);
+                break;
+            default:
+                throw new IllegalArgumentException("Некорректное значение параметра типа поиска filmSearchType.");
         }
 
-        return getFilmAdditionalData(films);
+        return getManyFilmsWithAdditionalData(SELECT_TOP_FILMS_BY_TITLE_AND_DIRECTOR_NAME_QUERY, params);
     }
 
     @Override
@@ -330,29 +372,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
             // Выполняем batch-вставку
             jdbc.batchUpdate(INSERT_DIRECTOR_QUERY, batch);
-        }
-    }
-
-    /**
-     * Обновляет лайки фильма в БД.
-     * При reset=true сначала удаляет все существующие лайки, затем добавляет новые.
-     * При reset=false только добавляет новые (без удаления).
-     */
-    private void updateFilmLikes(Film film, long filmId, Boolean reset) {
-        if (reset) {
-            update(DELETE_LIKES_QUERY, Map.of("filmId", filmId), false);
-        }
-
-        if (film.getLikes() != null && !film.getLikes().isEmpty()) {
-            // Формируем массив параметров для каждого лайка
-            SqlParameterSource[] batch = film.getLikes().stream()
-                    .map(userId -> new MapSqlParameterSource()
-                            .addValue("filmId", filmId)
-                            .addValue("userId", userId))
-                    .toArray(SqlParameterSource[]::new);
-
-            // Выполняем batch-вставку
-            jdbc.batchUpdate(INSERT_LIKE_QUERY, batch);
         }
     }
 

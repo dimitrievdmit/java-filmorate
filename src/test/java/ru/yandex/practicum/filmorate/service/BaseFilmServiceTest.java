@@ -4,10 +4,12 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.dto.DirectorReceiveDTO;
 import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mock.MockUsers;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.mock.MockFilms;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
 import ru.yandex.practicum.filmorate.enums.FilmRating;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -261,6 +263,48 @@ public abstract class BaseFilmServiceTest {
     }
 
     @Test
+    void shouldGetCommonFilmsSortedByPopularity_WhenCommonLikesExist() {
+        // Создаем 3 пользователя
+        User u1 = MockUsers.getValidUser(1L);
+        u1.setLogin("common_user_1");
+        u1.setEmail("common_user_1@mail.com");
+        u1.setName("Common User 1");
+        u1 = getUserService().createUser(u1);
+
+        User u2 = MockUsers.getValidUser(2L);
+        u2.setLogin("common_user_2");
+        u2.setEmail("common_user_2@mail.com");
+        u2.setName("Common User 2");
+        u2 = getUserService().createUser(u2);
+
+        User u3 = MockUsers.getValidUser(3L);
+        u3.setLogin("common_user_3");
+        u3.setEmail("common_user_3@mail.com");
+        u3.setName("Common User 3");
+        u3 = getUserService().createUser(u3);
+
+        // Создаем два фильма
+        Film filmA = getFilmService().createFilm(MockFilms.getValidFilm(1L));
+        Film filmB = getFilmService().createFilm(MockFilms.getValidFilm(2L));
+
+        // Лайки: filmA — 3 лайка (u1, u2, u3), filmB — 2 лайка (u1, u2)
+        getFilmService().filmAddLike(filmA.getId(), u1.getId());
+        getFilmService().filmAddLike(filmA.getId(), u2.getId());
+        getFilmService().filmAddLike(filmA.getId(), u3.getId());
+
+        getFilmService().filmAddLike(filmB.getId(), u1.getId());
+        getFilmService().filmAddLike(filmB.getId(), u2.getId());
+
+        List<Film> common = getFilmService().getCommonFilms(u1.getId(), u2.getId())
+                .stream()
+                .toList();
+
+        assertEquals(2, common.size());
+        assertEquals(filmA.getId(), common.get(0).getId());
+        assertEquals(filmB.getId(), common.get(1).getId());
+    }
+
+    @Test
     void shouldGetAllFilmsWithGenresLikesDirectors() {
         // Создаём несколько фильмов с разными данными
         Film film1 = MockFilms.getValidFilm(1L);
@@ -504,4 +548,52 @@ public abstract class BaseFilmServiceTest {
         assertTrue(filmsList.getFirst().getDirectors().contains(directorId3));
     }
 
+    @Test
+    void shouldReturnEmptyList_WhenNoCommonLikes() {
+        // Создаем двух пользователей с уникальными данными
+        User ua = MockUsers.getValidUser(10L);
+        ua.setLogin("common_no1");
+        ua.setEmail("common_no1@mail.com");
+        ua.setName("Common No1");
+        ua = getUserService().createUser(ua);
+
+        User ub = MockUsers.getValidUser(11L);
+        ub.setLogin("common_no2");
+        ub.setEmail("common_no2@mail.com");
+        ub.setName("Common No2");
+        ub = getUserService().createUser(ub);
+
+        // Создаем две разные пары фильмов
+        Film filmC = getFilmService().createFilm(MockFilms.getValidFilm(3L));
+        Film filmD = getFilmService().createFilm(MockFilms.getValidFilm(4L));
+
+        // Лайки: filmC - ua; filmD - ub
+        getFilmService().filmAddLike(filmC.getId(), ua.getId());
+        getFilmService().filmAddLike(filmD.getId(), ub.getId());
+
+        // Нет общих фильмов
+        List<Film> common = getFilmService().getCommonFilms(ua.getId(), ub.getId())
+                .stream()
+                .toList();
+
+        assertTrue(common.isEmpty());
+    }
+
+    @Test
+    void shouldThrowNotFoundException_WhenOneUserNotExists() {
+        // Создаем одного пользователя
+        User ua = MockUsers.getValidUser(20L);
+        ua.setLogin("common_missing");
+        ua.setEmail("common_missing@mail.com");
+        ua.setName("Common Missing");
+        ua = getUserService().createUser(ua);
+
+        Long nonExistentUserId = 999999L;
+
+        // Второй пользователь не существует
+        User finalUa = ua;
+        assertThrows(NotFoundException.class, () ->
+                getFilmService().getCommonFilms(finalUa.getId(), nonExistentUserId)
+        );
+    }
 }
