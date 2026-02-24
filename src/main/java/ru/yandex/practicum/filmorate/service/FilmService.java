@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.dal.LikeStorage;
 import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.enums.EventOperation;
 import ru.yandex.practicum.filmorate.enums.EventType;
+import ru.yandex.practicum.filmorate.enums.FilmSearchType;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -109,6 +110,11 @@ public class FilmService {
     public Collection<Film> getPopularFilms(Long count, Integer genreId, Integer year) {
         log.info("Получение первых {} фильмов по количеству лайков с фильтрами genreId={}, year={}", count, genreId, year);
         return filmStorage.getPopularFilms(count, genreId, year);
+    }
+
+    public Collection<Film> getFilmsByNameAndDirectorName(String query, FilmSearchType filmSearchType) {
+        log.info("Поиск фильмов по названию и/или режиссёру с query={} и filmSearchType={}", query, filmSearchType);
+        return filmStorage.getFilmsByNameAndDirectorName(query, filmSearchType);
     }
 
     public void checkThatFilmExists(Long id) {

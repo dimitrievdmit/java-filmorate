@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.DirectorMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -50,6 +51,7 @@ public class DirectorService {
     public List<DirectorSendDTO> getAllDirectors() {
         return directorStorage.getAllDirectors().stream()
                 .map(DirectorMapper::mapToSendDTO)
+                .sorted(Comparator.comparing(DirectorSendDTO::getId))
                 .toList();
     }
 
