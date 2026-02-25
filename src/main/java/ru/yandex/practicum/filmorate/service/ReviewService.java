@@ -5,8 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.filmorate.dal.ReviewRepository;
-import ru.yandex.practicum.filmorate.dto.review.ReviewRequestDto;
+import ru.yandex.practicum.filmorate.dal.ReviewRepository;import ru.yandex.practicum.filmorate.dto.review.ReviewRequestDto;
 import ru.yandex.practicum.filmorate.dto.review.ReviewResponseDto;
 import ru.yandex.practicum.filmorate.dto.review.ReviewUpdateDto;
 import ru.yandex.practicum.filmorate.enums.EventOperation;
@@ -15,6 +14,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
 import ru.yandex.practicum.filmorate.model.Review;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -90,6 +90,8 @@ public class ReviewService {
         return reviews.stream()
                 .map(review -> ReviewMapper.mapToResponseDto(review,
                         usefulMap.getOrDefault(review.getId(), 0)))
-                .toList();
+                .sorted(Comparator.comparing(ReviewResponseDto::useful))
+                .toList()
+                .reversed();
     }
 }
