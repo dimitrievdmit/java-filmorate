@@ -135,11 +135,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     private static final String DELETE_QUERY = "DELETE FROM films WHERE id = :id";
 
-    private static final String INSERT_LIKE_QUERY = """
-                INSERT INTO film_likes (film_id, user_id)
-                VALUES (:filmId, :userId)
-            """;
-
     private static final String INSERT_GENRE_QUERY = """
                 INSERT INTO film_genres (film_id, genre_id)
                 VALUES (:filmId, :genreId)
@@ -148,11 +143,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     private static final String INSERT_DIRECTOR_QUERY = """
                 INSERT INTO film_director (film_id, director_id)
                 VALUES (:filmId, :director_id)
-            """;
-
-        private static final String DELETE_SINGLE_LIKE_QUERY = """
-                DELETE FROM film_likes
-                WHERE film_id = :filmId AND user_id = :userId
             """;
 
     private static final String DELETE_GENRES_QUERY = "DELETE FROM film_genres WHERE film_id = :filmId";
@@ -347,30 +337,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             // Выполняем batch-вставку
             jdbc.batchUpdate(INSERT_DIRECTOR_QUERY, batch);
         }
-    }
-
-    @Override
-    public Film filmAddLike(Long id, Long userId) {
-        Film film = getFilm(id);
-        Map<String, Object> params = Map.of(
-                "filmId", id,
-                "userId", userId
-        );
-        update(INSERT_LIKE_QUERY, params, true);
-        film.addLike(userId);
-        return film;
-    }
-
-    @Override
-    public Film removeLike(Long id, Long userId) {
-        Film film = getFilm(id);
-        Map<String, Object> params = Map.of(
-                "filmId", id,
-                "userId", userId
-        );
-        update(DELETE_SINGLE_LIKE_QUERY, params, true);
-        film.removeLike(userId);
-        return film;
     }
 
     @Override
