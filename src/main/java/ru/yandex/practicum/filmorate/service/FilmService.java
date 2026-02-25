@@ -157,7 +157,8 @@ public class FilmService {
         if (films.isEmpty()) return new ArrayList<>();
 
         if (sortBy.equals("year")) comparator = Comparator.comparing(Film::getReleaseDate);
-        if (sortBy.equals("likes")) comparator = Comparator.comparing(film -> film.getLikes().size());
+        if (sortBy.equals("likes")) comparator = Comparator.comparing((Film film) -> film.getLikes().size()).reversed();
+
         if (comparator == null) throw new IllegalArgumentException("атрибут сортировки задан неверно");
 
         return films.stream()

@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.dal;
 
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.RowMapper;
@@ -52,7 +51,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 WHERE f.id = :id
             """;
 
-
     private static final String SELECT_MANY_FILMS_QUERY = """
                 SELECT
                     f.id,
@@ -91,6 +89,14 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             LIMIT :count
             """;
 
+    private static final String SELECT_DIRECTORS_QUERY = """
+                SELECT
+                    fd.film_id,
+                    fd.director_id
+                FROM film_director fd
+                WHERE fd.film_id IN (:filmIds)
+            """;
+
     private static final String SELECT_TOP_FILMS_BY_TITLE_AND_DIRECTOR_NAME_QUERY = """
                 SELECT
                     f.id,
@@ -112,15 +118,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 ORDER BY COUNT(fl.user_id) DESC;
             """;
 
-
-    private static final String SELECT_DIRECTORS_QUERY = """
-                SELECT
-                    fd.film_id,
-                    fd.director_id
-                FROM film_director fd
-                WHERE fd.film_id IN (:filmIds)
-            """;
-
     private static final String INSERT_QUERY = """
                 INSERT INTO films (name, description, release_date, duration, rating_id)
                 VALUES (:name, :description, :releaseDate, :duration, :ratingId)
@@ -138,6 +135,11 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     private static final String DELETE_QUERY = "DELETE FROM films WHERE id = :id";
 
+    private static final String INSERT_LIKE_QUERY = """
+                INSERT INTO film_likes (film_id, user_id)
+                VALUES (:filmId, :userId)
+            """;
+
     private static final String INSERT_GENRE_QUERY = """
                 INSERT INTO film_genres (film_id, genre_id)
                 VALUES (:filmId, :genreId)
@@ -146,6 +148,11 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     private static final String INSERT_DIRECTOR_QUERY = """
                 INSERT INTO film_director (film_id, director_id)
                 VALUES (:filmId, :director_id)
+            """;
+
+        private static final String DELETE_SINGLE_LIKE_QUERY = """
+                DELETE FROM film_likes
+                WHERE film_id = :filmId AND user_id = :userId
             """;
 
     private static final String DELETE_GENRES_QUERY = "DELETE FROM film_genres WHERE film_id = :filmId";
@@ -162,26 +169,26 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             """;
 
     private static final String GET_DIRECTOR_FILMS_BY_ID = """
-            SELECT
-            f.id,
-            f.name,
-            f.description,
-            f.release_date,
-            f.duration,
-            f.rating_id,
-            fd.director_id
-            FROM films f
-            JOIN film_director fd ON fd.film_id = f.id
-            WHERE fd.director_id = :directorId
-            """;
+                    SELECT
+                    f.id,
+                    f.name,
+                    f.description,
+                    f.release_date,
+                    f.duration,
+                    f.rating_id,
+                    fd.director_id
+                    FROM films f
+                    JOIN film_director fd ON fd.film_id = f.id
+                    WHERE fd.director_id = :directorId
+                    """;
 
     @SuppressWarnings("unused")
     private static final String SELECT_FILM_DIRECTORS_BY_ID = """
-            SELECT
-            fd.director_id
-            FROM film_director fd
-            WHERE film_id = :filmId
-            """;
+                    SELECT
+                    fd.director_id
+                    FROM film_director fd
+                    WHERE film_id = :filmId
+                    """;
 
     public FilmDbStorage(
             NamedParameterJdbcTemplate jdbc,
@@ -343,6 +350,30 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     }
 
     @Override
+    public Film filmAddLike(Long id, Long userId) {
+        Film film = getFilm(id);
+        Map<String, Object> params = Map.of(
+                "filmId", id,
+                "userId", userId
+        );
+        update(INSERT_LIKE_QUERY, params, true);
+        film.addLike(userId);
+        return film;
+    }
+
+    @Override
+    public Film removeLike(Long id, Long userId) {
+        Film film = getFilm(id);
+        Map<String, Object> params = Map.of(
+                "filmId", id,
+                "userId", userId
+        );
+        update(DELETE_SINGLE_LIKE_QUERY, params, true);
+        film.removeLike(userId);
+        return film;
+    }
+
+    @Override
     public Film filmAddGenre(Long id, Integer genreId) {
         Film film = getFilm(id);
         Map<String, Object> params = Map.of(
@@ -403,11 +434,15 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         List<Long> filmIds = films.stream()
                 .map(Film::getId)
                 .toList();
-        Map<Long, Set<Long>> filmDirectors = this.getFilmDirectors(filmIds);
+        // Получаем жанры для фильмов
+        Map<Long, Set<FilmGenre>> genresMap = this.getFilmGenres(filmIds);
+        // Получаем лайки для фильмов
+        Map<Long, Set<Long>> likesMap = likeStorage.getUserLikesByFilms(filmIds);
+        // Получаем режиссёров для фильмов (как было)
+        Map<Long, Set<Long>> directorsMap = this.getFilmDirectors(filmIds);
 
-        return films.stream()
-                .peek(f -> f.setDirectors(filmDirectors.get(f.getId())))
-                .toList();
+        return enrichFilms(films, genresMap, likesMap, directorsMap);
+
     }
 
     @Override

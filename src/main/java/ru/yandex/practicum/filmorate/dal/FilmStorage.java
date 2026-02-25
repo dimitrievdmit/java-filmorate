@@ -9,6 +9,10 @@ import java.util.List;
 public interface FilmStorage {
     Collection<Film> getAllFilms();
 
+    Film filmAddLike(Long id, Long userId);
+
+    Film removeLike(Long id, Long userId);
+
     Film createFilm(Film film);
 
     Film getFilm(Long id);
