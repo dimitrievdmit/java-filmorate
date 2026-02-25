@@ -29,13 +29,15 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     private static final String SELECT_ALL_FILMS_QUERY = """
                 SELECT
-                    f.id,
-                    f.name,
-                    f.description,
-                    f.release_date,
-                    f.duration,
-                    f.rating_id
+                f.id,
+                f.name,
+                f.description,
+                f.release_date,
+                f.duration,
+                f.rating_id,
+                fd.director_id
                 FROM films f
+                LEFT JOIN film_director fd ON fd.film_id = f.id
             """;
 
 
@@ -442,7 +444,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         Map<Long, Set<Long>> directorsMap = this.getFilmDirectors(filmIds);
 
         return enrichFilms(films, genresMap, likesMap, directorsMap);
-
     }
 
     @Override
