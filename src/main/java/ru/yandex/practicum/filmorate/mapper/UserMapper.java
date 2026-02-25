@@ -52,11 +52,15 @@ public final class UserMapper {
      * Добавить пустую таблицу с друзьями.
      */
     public static User mapReceiveToDomain(UserReceiveDTO userDTO) {
+        String name = userDTO.getName();
+        if (name == null || name.trim().isEmpty()) {
+            name = userDTO.getLogin();
+        }
         return new User(
                 userDTO.getId(),
                 userDTO.getEmail(),
                 userDTO.getLogin(),
-                userDTO.getName(),
+                name,
                 userDTO.getBirthday(),
                 new HashMap<>()
         );
