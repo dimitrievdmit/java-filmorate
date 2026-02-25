@@ -32,6 +32,7 @@ public class UserService {
     }
 
     public User createUser(@Valid User user) {
+        Validator.fillNameWithLoginIfEmpty(user);
         return userStorage.createUser((user));
     }
 
