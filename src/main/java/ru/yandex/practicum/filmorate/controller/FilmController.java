@@ -68,7 +68,6 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public FilmSendDTO filmDeleteLike(@PathVariable Long id, @PathVariable Long userId) {
         return FilmMapper.mapToSendDTO(filmService.filmDeleteLike(id, userId));
     }
@@ -79,7 +78,6 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/genre/{genreId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public FilmSendDTO filmDeleteGenre(@PathVariable Long id, @PathVariable Integer genreId) {
         return FilmMapper.mapToSendDTO(filmService.filmDeleteGenre(id, genreId));
     }
