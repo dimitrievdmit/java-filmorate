@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.dal;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -37,6 +38,14 @@ public class LikeDbStorage extends BaseDBRepository<Film> implements LikeStorage
                 WHERE fl.user_id IN (:userIds)
             """;
 
+    private static final String SELECT_SINGLE_LIKE_QUERY = """
+                SELECT
+                    fl.film_id,
+                    fl.user_id
+                FROM film_likes fl
+                WHERE fl.film_id = :filmId AND fl.user_id = :userId
+            """;
+
     private static final String INSERT_LIKE_QUERY = """
                 INSERT INTO film_likes (film_id, user_id)
                 VALUES (:filmId, :userId)
@@ -53,7 +62,7 @@ public class LikeDbStorage extends BaseDBRepository<Film> implements LikeStorage
             NamedParameterJdbcTemplate jdbc,
             RowMapper<Film> mapper,
             FilmLikeRowMapper filmLikeRowMapper
-            ) {
+    ) {
         super(jdbc, mapper);
         this.filmLikeRowMapper = filmLikeRowMapper;
     }
@@ -104,6 +113,20 @@ public class LikeDbStorage extends BaseDBRepository<Film> implements LikeStorage
         update(DELETE_SINGLE_LIKE_QUERY, params, true);
         film.removeLike(userId);
         return film;
+    }
+
+    @Override
+    public boolean checkIfExists(Film film, Long userId) {
+        Map<String, Object> params = Map.of(
+                "filmId", film.getId(),
+                "userId", userId
+        );
+        try {
+            Map.Entry<Long, Long> result = jdbc.queryForObject(SELECT_SINGLE_LIKE_QUERY, params, filmLikeRowMapper);
+            return Optional.ofNullable(result).isPresent();
+        } catch (EmptyResultDataAccessException ignored) {
+            return false;
+        }
     }
 
     @Override

@@ -82,7 +82,7 @@ class DBDirectorServiceTest {
         // Arrange
         DirectorReceiveDTO receiveDTO = new DirectorReceiveDTO(1L, "Martin Scorsese");
         Director existingDirector = new Director(1L, "Old Name");
-        Director updatedDirector = new Director(1L, "Martin Scorsese");
+        new Director(1L, "Martin Scorsese");
         DirectorSendDTO expectedDTO = new DirectorSendDTO(1L, "Martin Scorsese");
 
         when(directorStorage.checkIfNotExists(1L)).thenReturn(false);

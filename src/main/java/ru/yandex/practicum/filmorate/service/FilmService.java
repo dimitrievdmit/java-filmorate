@@ -77,6 +77,7 @@ public class FilmService {
         log.info("Добавление лайка фильму {} пользователем {}", id, userId);
         Film film = filmStorage.getFilm(id);
         userService.checkThatUserExists(userId);
+        if (likeStorage.checkIfExists(film, userId)) return film;
         feedService.logEvent(userId, EventType.LIKE, EventOperation.ADD, id);
         return likeStorage.filmAddLike(film, userId);
     }

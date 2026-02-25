@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.service.ReviewService;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 @RestController
 @Profile("db")
 @RequestMapping("/reviews")

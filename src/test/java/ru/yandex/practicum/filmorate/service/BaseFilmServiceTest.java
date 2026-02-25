@@ -596,4 +596,27 @@ public abstract class BaseFilmServiceTest {
                 getFilmService().getCommonFilms(finalUa.getId(), nonExistentUserId)
         );
     }
+
+
+    @Test
+    void shouldHandleDuplicateLikeCreateAttemptGracefully() {
+        // Создаём фильм
+        Film film = MockFilms.getValidFilm(1L);
+        Film created = getFilmService().createFilm(film);
+
+        // Создаём пользователя
+        Long userId1 = getUserService().createUser(getValidUser()).getId();
+
+        // Пытаемся добавить лайка дважды.
+        getFilmService().filmAddLike(created.getId(), userId1);
+        // Ожидаем, что сервис молча отработает и ничего не изменится.
+        getFilmService().filmAddLike(created.getId(), userId1);
+
+        // Получаем фильм и проверяем лайки
+        Film retrieved = getFilmService().getFilm(created.getId());
+
+        assertNotNull(retrieved.getLikes());
+        assertEquals(1, retrieved.getLikes().size());
+        assertTrue(retrieved.getLikes().contains(userId1));
+    }
 }

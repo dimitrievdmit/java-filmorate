@@ -62,23 +62,7 @@ class FilmMapperTest {
 
     @Test
     void mapToDomain_shouldConvertFilmReceiveDTOToFilmWithCorrectEnumValues() {
-        List<FilmGenreReceiveDTO> genreDtos = List.of(
-                new FilmGenreReceiveDTO(FilmGenre.THRILLER.getId()),
-                new FilmGenreReceiveDTO(FilmGenre.DOCUMENTARY.getId())
-        );
-        FilmRatingReceiveDTO mpaDto = new FilmRatingReceiveDTO(FilmRating.R.getId());
-
-        FilmReceiveDTO dto = new FilmReceiveDTO(
-                2L,
-                "The Matrix",
-                "A cyberpunk action film.",
-                LocalDate.of(1999, 3, 31),
-                136L,
-                genreDtos,
-                mpaDto,
-                List.of(201L, 202L),
-                new ArrayList<>()
-        );
+        FilmReceiveDTO dto = getFilmReceiveDTO();
 
         Film domain = FilmMapper.mapToDomain(dto);
 
@@ -93,6 +77,26 @@ class FilmMapperTest {
         assertEquals(expectedGenres, domain.getGenres());
         assertEquals(FilmRating.R, domain.getRating());
         assertEquals(Set.of(201L, 202L), domain.getLikes());
+    }
+
+    private static FilmReceiveDTO getFilmReceiveDTO() {
+        List<FilmGenreReceiveDTO> genreDtos = List.of(
+                new FilmGenreReceiveDTO(FilmGenre.THRILLER.getId()),
+                new FilmGenreReceiveDTO(FilmGenre.DOCUMENTARY.getId())
+        );
+        FilmRatingReceiveDTO mpaDto = new FilmRatingReceiveDTO(FilmRating.R.getId());
+
+        return new FilmReceiveDTO(
+                2L,
+                "The Matrix",
+                "A cyberpunk action film.",
+                LocalDate.of(1999, 3, 31),
+                136L,
+                genreDtos,
+                mpaDto,
+                List.of(201L, 202L),
+                new ArrayList<>()
+        );
     }
 
     @Test
