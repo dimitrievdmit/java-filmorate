@@ -90,8 +90,8 @@ public class ReviewService {
         return reviews.stream()
                 .map(review -> ReviewMapper.mapToResponseDto(review,
                         usefulMap.getOrDefault(review.getId(), 0)))
-                .sorted(Comparator.comparing(ReviewResponseDto::useful))
-                .toList()
-                .reversed();
+                .sorted(Comparator.comparing(ReviewResponseDto::reviewId))
+                .sorted(Comparator.comparing(ReviewResponseDto::useful).reversed())
+                .toList();
     }
 }
