@@ -66,6 +66,7 @@ public class ReviewRepository extends BaseDBRepository<Review> {
         return findOne(FIND_BY_ID_QUERY, Map.of("id", id));
     }
 
+    @SuppressWarnings("unused")
     public Boolean existsById(long id) {
         return jdbc.queryForObject(EXISTS_BY_ID_QUERY, Map.of("id", id), Boolean.class);
     }

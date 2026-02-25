@@ -6,8 +6,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.yandex.practicum.filmorate.dal.DirectorStorage;
-import ru.yandex.practicum.filmorate.dto.DirectorReceiveDTO;
+import ru.yandex.practicum.filmorate.dto.DirectorCreateDTO;
 import ru.yandex.practicum.filmorate.dto.DirectorSendDTO;
+import ru.yandex.practicum.filmorate.dto.DirectorUpdateDTO;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 
@@ -15,7 +16,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
@@ -30,7 +30,7 @@ class DBDirectorServiceTest {
     @Test
     void shouldCreateDirector() {
         // Arrange
-        DirectorReceiveDTO receiveDTO = new DirectorReceiveDTO(1L, "Steven Spielberg");
+        DirectorCreateDTO receiveDTO = new DirectorCreateDTO("Steven Spielberg");
         Director domainDirector = new Director(1L, "Steven Spielberg");
         DirectorSendDTO expectedDTO = new DirectorSendDTO(1L, "Steven Spielberg");
 
@@ -80,7 +80,7 @@ class DBDirectorServiceTest {
     @Test
     void shouldUpdateDirector() {
         // Arrange
-        DirectorReceiveDTO receiveDTO = new DirectorReceiveDTO(1L, "Martin Scorsese");
+        DirectorUpdateDTO receiveDTO = new DirectorUpdateDTO(1L, "Martin Scorsese");
         Director existingDirector = new Director(1L, "Old Name");
         new Director(1L, "Martin Scorsese");
         DirectorSendDTO expectedDTO = new DirectorSendDTO(1L, "Martin Scorsese");
@@ -99,7 +99,7 @@ class DBDirectorServiceTest {
     @Test
     void shouldThrowIllegalArgumentExceptionWhenUpdatingWithNullId() {
         // Arrange
-        DirectorReceiveDTO receiveDTO = new DirectorReceiveDTO(null, "Name");
+        DirectorUpdateDTO receiveDTO = new DirectorUpdateDTO(null, "Name");
 
         // Act & Assert
         assertThatThrownBy(() -> directorService.updateDirector(receiveDTO))

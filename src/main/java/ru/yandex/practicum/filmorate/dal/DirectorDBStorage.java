@@ -46,7 +46,7 @@ public class DirectorDBStorage extends BaseDBRepository<Director> implements Dir
                 "id", director.getId(),
                 "name", director.getName()
         );
-        update(UPDATE_DIRECTOR_BY_ID, params, false);
+        update(UPDATE_DIRECTOR_BY_ID, params, true);
     }
 
     @Override

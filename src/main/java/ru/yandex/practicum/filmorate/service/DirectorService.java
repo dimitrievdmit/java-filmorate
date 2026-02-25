@@ -4,8 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.DirectorStorage;
-import ru.yandex.practicum.filmorate.dto.DirectorReceiveDTO;
+import ru.yandex.practicum.filmorate.dto.DirectorCreateDTO;
 import ru.yandex.practicum.filmorate.dto.DirectorSendDTO;
+import ru.yandex.practicum.filmorate.dto.DirectorUpdateDTO;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.DirectorMapper;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -19,17 +20,17 @@ import java.util.List;
 public class DirectorService {
     private final DirectorStorage directorStorage;
 
-    public DirectorSendDTO createDirector(DirectorReceiveDTO receiveDTO) {
-        Director director = DirectorMapper.mapToCreateDomain(receiveDTO);
+    public DirectorSendDTO createDirector(DirectorCreateDTO createDTO) {
+        Director director = DirectorMapper.mapCreateDTOToDomain(createDTO);
         return DirectorMapper.mapToSendDTO(directorStorage.createDirector(director));
     }
 
-    public DirectorSendDTO updateDirector(DirectorReceiveDTO receiveDTO) {
-        if (receiveDTO.getId() == null)
+    public DirectorSendDTO updateDirector(DirectorUpdateDTO updateDTO) {
+        if (updateDTO.getId() == null)
             throw new IllegalArgumentException("при обновлении режиссера id = null");
 
-        checkThatDirectorExists(receiveDTO.getId());
-        Director director = DirectorMapper.mapToUpdateDomain(receiveDTO);
+        checkThatDirectorExists(updateDTO.getId());
+        Director director = DirectorMapper.mapUpdateDTOToDomain(updateDTO);
 
         directorStorage.updateDirector(director);
         DirectorSendDTO sendDTO = DirectorMapper.mapToSendDTO(director);

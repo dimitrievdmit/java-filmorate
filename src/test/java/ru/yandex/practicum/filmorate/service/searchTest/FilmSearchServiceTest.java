@@ -9,7 +9,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.yandex.practicum.filmorate.dto.DirectorReceiveDTO;
+import ru.yandex.practicum.filmorate.dto.DirectorCreateDTO;
+import ru.yandex.practicum.filmorate.dto.DirectorSendDTO;
+import ru.yandex.practicum.filmorate.mapper.DirectorMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.mock.MockFilms;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
@@ -75,9 +77,9 @@ class FilmSearchServiceTest {
         film.setName("The Dark Knight");
         film.setGenres(new HashSet<>(List.of(FilmGenre.ACTION, FilmGenre.DRAMA)));
 
-        DirectorReceiveDTO director = new DirectorReceiveDTO(1L, "Christopher Nolan");
-        Long directorId = directorService.createDirector(director).getId();
-        film.setDirectors(new HashSet<>(List.of(directorId)));
+        DirectorCreateDTO directorCreateDTO = new DirectorCreateDTO("Christopher Nolan");
+        DirectorSendDTO director = directorService.createDirector(directorCreateDTO);
+        film.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director))));
 
         filmService.createFilm(film);
 
@@ -97,9 +99,9 @@ class FilmSearchServiceTest {
         Film film = MockFilms.getValidFilm(1L);
         film.setName("Nolan's Masterpiece");
 
-        DirectorReceiveDTO director = new DirectorReceiveDTO(1L, "Nolan");
-        Long directorId = directorService.createDirector(director).getId();
-        film.setDirectors(new HashSet<>(List.of(directorId)));
+        DirectorCreateDTO directorCreateDTO = new DirectorCreateDTO("Nolan");
+        DirectorSendDTO director = directorService.createDirector(directorCreateDTO);
+        film.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director))));
 
         filmService.createFilm(film);
 
@@ -232,23 +234,23 @@ class FilmSearchServiceTest {
     @Test
     void shouldSortByPopularityAndReturnFullFilmData() throws Exception {
         // Создаём режиссёров
-        DirectorReceiveDTO director1 = new DirectorReceiveDTO(1L, "Director One");
-        Long directorId1 = directorService.createDirector(director1).getId();
+        DirectorCreateDTO directorCreateDTO1 = new DirectorCreateDTO("Director One");
+        DirectorSendDTO director1 = directorService.createDirector(directorCreateDTO1);
 
-        DirectorReceiveDTO director2 = new DirectorReceiveDTO(2L, "Director Two");
-        Long directorId2 = directorService.createDirector(director2).getId();
+        DirectorCreateDTO directorCreateDTO2 = new DirectorCreateDTO("Director Two");
+        DirectorSendDTO director2 = directorService.createDirector(directorCreateDTO2);
 
         // Создаём фильмы с разным количеством лайков
         Film popularFilm = MockFilms.getValidFilm(1L);
         popularFilm.setName("Popular Movie");
         popularFilm.setGenres(new HashSet<>(Arrays.asList(FilmGenre.COMEDY, FilmGenre.DRAMA)));
-        popularFilm.setDirectors(new HashSet<>(List.of(directorId1)));
+        popularFilm.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director1))));
         popularFilm.setRating(FilmRating.PG_13);
 
         Film unpopularFilm = MockFilms.getValidFilm(2L);
         unpopularFilm.setName("Unpopular Movie");
         unpopularFilm.setGenres(new HashSet<>(List.of(FilmGenre.ACTION)));
-        unpopularFilm.setDirectors(new HashSet<>(List.of(directorId2)));
+        unpopularFilm.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director2))));
         unpopularFilm.setRating(FilmRating.R);
 
         Film createdPopular = filmService.createFilm(popularFilm);
@@ -282,7 +284,7 @@ class FilmSearchServiceTest {
                         hasItems("Комедия", "Драма")))
                 // Проверяем режиссёра популярного фильма
                 .andExpect(jsonPath("$[0].directors.length()").value(1))
-                .andExpect(jsonPath("$[0].directors[0].id").value(directorId1))
+                .andExpect(jsonPath("$[0].directors[0].id").value(director1.getId()))
 //                .andExpect(jsonPath("$[0].directors[0].name").value("Director One"))
                 // Проверяем рейтинг популярного фильма
                 .andExpect(jsonPath("$[0].mpa.id").value(3)) // PG_13
@@ -297,7 +299,7 @@ class FilmSearchServiceTest {
                 .andExpect(jsonPath("$[1].genres[0].name").value("Боевик"))
                 // Проверяем режиссёра непопулярного фильма
                 .andExpect(jsonPath("$[1].directors.length()").value(1))
-                .andExpect(jsonPath("$[1].directors[0].id").value(directorId2))
+                .andExpect(jsonPath("$[1].directors[0].id").value(director2.getId()))
 //                .andExpect(jsonPath("$[1].directors[0].name").value("Director Two"))
                 // Проверяем рейтинг непопулярного фильма
                 .andExpect(jsonPath("$[1].mpa.id").value(4)) // R
@@ -313,13 +315,13 @@ class FilmSearchServiceTest {
 
 
         // Создаём фильм с искомым текстом в имени режиссёра
-        DirectorReceiveDTO director = new DirectorReceiveDTO(1L, "Крадовец");
-        Long directorId = directorService.createDirector(director).getId();
+        DirectorCreateDTO directorCreateDTO = new DirectorCreateDTO("Крадовец");
+        DirectorSendDTO director = directorService.createDirector(directorCreateDTO);
 
 
         Film filmByDirector = MockFilms.getValidFilm(2L);
         filmByDirector.setName("Тест");
-        filmByDirector.setDirectors(new HashSet<>(List.of(directorId)));
+        filmByDirector.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director))));
         filmService.createFilm(filmByDirector);
 
 
@@ -383,12 +385,12 @@ class FilmSearchServiceTest {
         filmService.createFilm(filmWithoutDirector);
 
         // Создаём фильм С режиссёром
-        DirectorReceiveDTO director = new DirectorReceiveDTO(1L, "Известный Режиссёр");
-        Long directorId = directorService.createDirector(director).getId();
+        DirectorCreateDTO directorCreateDTO = new DirectorCreateDTO("Известный Режиссёр");
+        DirectorSendDTO director = directorService.createDirector(directorCreateDTO);
 
         Film filmWithDirector = MockFilms.getValidFilm(2L);
         filmWithDirector.setName("Фильм с режиссёром");
-        filmWithDirector.setDirectors(new HashSet<>(List.of(directorId)));
+        filmWithDirector.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director))));
         filmService.createFilm(filmWithDirector);
 
         // Выполняем поиск ТОЛЬКО по режиссёру (не по названию)
@@ -418,12 +420,12 @@ class FilmSearchServiceTest {
 
 
         // Создаём фильм С режиссёром, который должен быть найден (содержит ключевое слово в названии)
-        DirectorReceiveDTO director = new DirectorReceiveDTO(1L, "Известный Режиссёр");
-        Long directorId = directorService.createDirector(director).getId();
+        DirectorCreateDTO directorCreateDTO = new DirectorCreateDTO("Известный Режиссёр");
+        DirectorSendDTO director = directorService.createDirector(directorCreateDTO);
 
         Film filmWithDirector = MockFilms.getValidFilm(2L);
         filmWithDirector.setName("Ищуемый фильм с режиссёром");
-        filmWithDirector.setDirectors(new HashSet<>(List.of(directorId)));
+        filmWithDirector.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director))));
         filmService.createFilm(filmWithDirector);
 
         // Выполняем поиск ТОЛЬКО по названию (не по режиссёру)
@@ -452,28 +454,28 @@ class FilmSearchServiceTest {
 
 
         // Создаём фильм С режиссёром, который должен быть найден по названию
-        DirectorReceiveDTO director1 = new DirectorReceiveDTO(1L, "Обычный Режиссёр");
-        Long directorId1 = directorService.createDirector(director1).getId();
+        DirectorCreateDTO directorCreateDTO1 = new DirectorCreateDTO("Обычный Режиссёр");
+        DirectorSendDTO director1 = directorService.createDirector(directorCreateDTO1);
 
         Film filmWithDirectorByTitle = MockFilms.getValidFilm(2L);
         filmWithDirectorByTitle.setName("Ещё один ищуемый фильм");
-        filmWithDirectorByTitle.setDirectors(new HashSet<>(List.of(directorId1)));
+        filmWithDirectorByTitle.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director1))));
         filmService.createFilm(filmWithDirectorByTitle);
 
         // Создаём фильм С режиссёром, который должен быть найден по режиссёру
-        DirectorReceiveDTO director2 = new DirectorReceiveDTO(2L, "Ищуемый Режиссёр");
-        Long directorId2 = directorService.createDirector(director2).getId();
+        DirectorCreateDTO directorCreateDTO2 = new DirectorCreateDTO("Ищуемый Режиссёр");
+        DirectorSendDTO director2 = directorService.createDirector(directorCreateDTO2);
         Film filmWithDirectorByDirector = MockFilms.getValidFilm(3L);
         filmWithDirectorByDirector.setName("Фильм с ищуемым режиссёром");
-        filmWithDirectorByDirector.setDirectors(new HashSet<>(List.of(directorId2)));
+        filmWithDirectorByDirector.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director2))));
         filmService.createFilm(filmWithDirectorByDirector);
 
         // Создаём фильм, который НЕ должен быть найден (не подходит ни по названию, ни по режиссёру)
-        DirectorReceiveDTO director3 = new DirectorReceiveDTO(3L, "Другой Режиссёр");
-        Long directorId3 = directorService.createDirector(director3).getId();
+        DirectorCreateDTO directorCreateDTO3 = new DirectorCreateDTO("Другой Режиссёр");
+        DirectorSendDTO director3 = directorService.createDirector(directorCreateDTO3);
         Film unrelatedFilm = MockFilms.getValidFilm(4L);
         unrelatedFilm.setName("Неподходящий фильм");
-        unrelatedFilm.setDirectors(new HashSet<>(List.of(directorId3)));
+        unrelatedFilm.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director3))));
         filmService.createFilm(unrelatedFilm);
 
         // Выполняем поиск одновременно по названию И режиссёру
@@ -504,12 +506,12 @@ class FilmSearchServiceTest {
      * Вспомогательный метод для создания фильма с названием и режиссёром
      */
     private void createFilmWithTitleAndDirector(String title, String directorName) {
-        DirectorReceiveDTO director = new DirectorReceiveDTO(null, directorName);
-        Long directorId = directorService.createDirector(director).getId();
+        DirectorCreateDTO directorCreateDTO = new DirectorCreateDTO(directorName);
+        DirectorSendDTO director = directorService.createDirector(directorCreateDTO);
 
         Film film = MockFilms.getValidFilm(null);
         film.setName(title);
-        film.setDirectors(new HashSet<>(List.of(directorId)));
+        film.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director))));
 
         filmService.createFilm(film);
     }

@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.dal.mappers.FilmDirectorRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmGenreRowMapper;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
 import ru.yandex.practicum.filmorate.enums.FilmSearchType;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.sql.Timestamp;
@@ -92,8 +93,10 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     private static final String SELECT_DIRECTORS_QUERY = """
                 SELECT
                     fd.film_id,
-                    fd.director_id
+                    fd.director_id,
+                    d.name as director_name
                 FROM film_director fd
+                JOIN directors d ON fd.director_id = d.id
                 WHERE fd.film_id IN (:filmIds)
             """;
 
@@ -176,7 +179,9 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     private static final String SELECT_FILM_DIRECTORS_BY_ID = """
                     SELECT
                     fd.director_id
+                    d.name as director_name
                     FROM film_director fd
+                    JOIN directors d ON fd.director_id = d.id
                     WHERE film_id = :filmId
                     """;
 
@@ -331,7 +336,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             SqlParameterSource[] batch = film.getDirectors().stream()
                     .map(director -> new MapSqlParameterSource()
                             .addValue("filmId", filmId)
-                            .addValue("director_id", director))
+                            .addValue("director_id", director.getId()))
                     .toArray(SqlParameterSource[]::new);
 
             // Выполняем batch-вставку
@@ -405,7 +410,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         // Получаем лайки для фильмов
         Map<Long, Set<Long>> likesMap = likeStorage.getUserLikesByFilms(filmIds);
         // Получаем режиссёров для фильмов (как было)
-        Map<Long, Set<Long>> directorsMap = this.getFilmDirectors(filmIds);
+        Map<Long, Set<Director>> directorsMap = this.getFilmDirectors(filmIds);
 
         return enrichFilms(films, genresMap, likesMap, directorsMap);
 
@@ -429,7 +434,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
         // 3. Получаем лайки для указанных фильмов
         Map<Long, Set<Long>> likesMap = likeStorage.getUserLikesByFilms(filmIds);
-        Map<Long, Set<Long>> directorMap = getFilmDirectors(filmIds);
+        Map<Long, Set<Director>> directorMap = getFilmDirectors(filmIds);
         // 4. Создаём новые объекты Film с дополненными данными (не меняя исходные)
 
         return enrichFilms(films, genresMap, likesMap, directorMap);
@@ -451,7 +456,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 ));
     }
 
-    private Map<Long, Set<Long>> getFilmDirectors(List<Long> filmIds) {
+    private Map<Long, Set<Director>> getFilmDirectors(List<Long> filmIds) {
         // Получаем всех режиссеров для указанных фильмов
         // Запрос возвращает пары (film_id, user_id)
         return jdbc.query(
@@ -471,7 +476,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             List<Film> films,
             Map<Long, Set<FilmGenre>> genresMap,
             Map<Long, Set<Long>> likesMap,
-            Map<Long, Set<Long>> directorMap
+            Map<Long, Set<Director>> directorMap
     ) {
         return films.stream()
                 .map(film -> {
@@ -483,7 +488,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                     newFilm.setReleaseDate(film.getReleaseDate());
                     newFilm.setDuration(film.getDuration());
                     newFilm.setRating(film.getRating());
-                    newFilm.setDirectors(directorMap.get(film.getId()));
+                    newFilm.setDirectors(directorMap.getOrDefault(film.getId(), new HashSet<>()));
 
                     // Добавляем дополнительные данные
                     newFilm.setGenres(genresMap.getOrDefault(film.getId(), new HashSet<>()));
