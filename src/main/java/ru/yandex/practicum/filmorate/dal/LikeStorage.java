@@ -18,4 +18,6 @@ public interface LikeStorage {
 
     Film filmRemoveLike(Film film, Long userId);
 
+    boolean checkIfExists(Film film, Long userId);
+
 }
