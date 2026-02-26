@@ -3,15 +3,14 @@ package ru.yandex.practicum.filmorate.service;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.dto.DirectorCreateDTO;
 import ru.yandex.practicum.filmorate.dto.DirectorSendDTO;
-import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
+import ru.yandex.practicum.filmorate.enums.FilmGenre;
+import ru.yandex.practicum.filmorate.enums.FilmRating;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.DirectorMapper;
+import ru.yandex.practicum.filmorate.mock.MockFilms;
 import ru.yandex.practicum.filmorate.mock.MockUsers;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.mock.MockFilms;
-import ru.yandex.practicum.filmorate.enums.FilmGenre;
-import ru.yandex.practicum.filmorate.enums.FilmRating;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -476,7 +475,7 @@ public abstract class BaseFilmServiceTest {
         long nonExistentDirectorId = 999L;
 
         assertThrows(NotFoundException.class,
-                () -> {getFilmService().getSortedDirectorFilms(nonExistentDirectorId, "year");});
+                () -> getFilmService().getSortedDirectorFilms(nonExistentDirectorId, "year"));
     }
 
     @Test
