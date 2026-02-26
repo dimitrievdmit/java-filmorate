@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.FeedEventStorage;
 import ru.yandex.practicum.filmorate.enums.EventOperation;
@@ -11,6 +12,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class FeedService {
 
@@ -28,5 +30,6 @@ public class FeedService {
         event.setEntityId(entityId);
         event.setTimestamp(Instant.now().toEpochMilli());
         feedEventStorage.addEvent(event);
+        log.info("Событие добавлено в ленту: userId={}, eventType={}, operation={}, entityId={}", userId, eventType, operation, entityId);
     }
 }
