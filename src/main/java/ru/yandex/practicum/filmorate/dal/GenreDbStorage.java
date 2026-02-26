@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 
 
+@SuppressWarnings("unused")
 @Repository
 @Profile("db")  // аннотация @Qualifier в сервисах мешала настроить тесты сразу на обе реализации
 public class GenreDbStorage extends BaseDBRepository<FilmGenre> implements GenreStorage {

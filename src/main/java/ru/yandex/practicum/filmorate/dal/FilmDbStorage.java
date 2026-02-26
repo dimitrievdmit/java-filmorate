@@ -194,6 +194,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                     WHERE film_id = :filmId
                     """;
 
+    @SuppressWarnings("unused")
     public FilmDbStorage(
             NamedParameterJdbcTemplate jdbc,
             RowMapper<Film> mapper,

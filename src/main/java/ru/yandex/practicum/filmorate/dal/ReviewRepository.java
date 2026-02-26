@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@SuppressWarnings("unused")
 @Repository
 @Profile("db")
 public class ReviewRepository extends BaseDBRepository<Review> {

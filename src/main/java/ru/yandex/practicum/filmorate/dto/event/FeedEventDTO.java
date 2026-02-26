@@ -4,6 +4,7 @@ import lombok.Data;
 import ru.yandex.practicum.filmorate.enums.EventOperation;
 import ru.yandex.practicum.filmorate.enums.EventType;
 
+@SuppressWarnings("unused")
 @Data
 public class FeedEventDTO {
     private Long timestamp;

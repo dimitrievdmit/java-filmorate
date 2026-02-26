@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 @Slf4j
 @Repository
 @Profile("db")  // аннотация @Qualifier в сервисах мешала настроить тесты сразу на обе реализации

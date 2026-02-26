@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.dto.event.FeedEventDTO;
 import ru.yandex.practicum.filmorate.model.FeedEvent;
 
+@SuppressWarnings("unused")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FeedEventMapper {
     public static FeedEventDTO toDTO(FeedEvent event) {
