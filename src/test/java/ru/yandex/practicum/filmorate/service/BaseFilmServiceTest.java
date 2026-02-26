@@ -472,12 +472,11 @@ public abstract class BaseFilmServiceTest {
     }
 
     @Test
-    void shouldReturnEmptyListWhenDirectorHasNoFilms() {
+    void shouldThrowsNotFoundExceptionWhenDirectorHasNoFilms() {
         long nonExistentDirectorId = 999L;
 
-        List<FilmSendDTO> films = getFilmService().getSortedDirectorFilms(nonExistentDirectorId, "year");
-
-        assertTrue(films.isEmpty());
+        assertThrows(NotFoundException.class,
+                () -> {getFilmService().getSortedDirectorFilms(nonExistentDirectorId, "year");});
     }
 
     @Test

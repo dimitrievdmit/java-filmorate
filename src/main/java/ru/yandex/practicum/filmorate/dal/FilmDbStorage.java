@@ -37,9 +37,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 f.release_date,
                 f.duration,
                 f.rating_id,
-                fd.director_id
                 FROM films f
-                LEFT JOIN film_director fd ON fd.film_id = f.id
             """;
 
 
