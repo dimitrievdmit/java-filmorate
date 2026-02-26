@@ -27,7 +27,9 @@ public interface FilmStorage {
 
     Collection<Film> getFilmsByTitleAndDirectorName(String query, FilmSearchType filmSearchType);
 
-    boolean checkIfNotExists(Long id);
+    boolean checkIfFilmNotExists(Long id);
+
+    boolean checkIfDirectorNotExists(Long id);
 
     List<Film> getDirectorFilms(long directorId);
 }

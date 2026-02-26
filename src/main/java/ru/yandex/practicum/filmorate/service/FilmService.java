@@ -144,8 +144,17 @@ public class FilmService {
 
     public void checkThatFilmExists(Long id) {
         log.info("Проверить, что фильм существует.");
-        if (filmStorage.checkIfNotExists(id)) {
+        if (filmStorage.checkIfFilmNotExists(id)) {
             String errText = "Фильм с id = " + id + " не найден";
+            log.error("Ошибка: {}", errText);
+            throw new NotFoundException(errText);
+        }
+    }
+
+    public void checkThatDirectorExists(Long id) {
+        log.info("Проверить, что режиссер существует.");
+        if (filmStorage.checkIfDirectorNotExists(id)) {
+            String errText = "Режиссер с id = " + id + " не найден";
             log.error("Ошибка: {}", errText);
             throw new NotFoundException(errText);
         }
@@ -153,6 +162,8 @@ public class FilmService {
 
     public List<FilmSendDTO> getSortedDirectorFilms(long directorId, String sortBy) {
         Comparator<Film> comparator = null;
+
+        checkThatDirectorExists(directorId);
 
         List<Film> films = filmStorage.getDirectorFilms(directorId);
         if (films.isEmpty()) return new ArrayList<>();

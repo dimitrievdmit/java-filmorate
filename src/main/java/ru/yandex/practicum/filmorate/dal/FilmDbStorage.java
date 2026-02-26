@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.filmorate.dal.mappers.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmDirectorRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmGenreRowMapper;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
@@ -52,6 +53,14 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                     f.rating_id
                 FROM films f
                 WHERE f.id = :id
+            """;
+
+    private static final String SELECT_ONE_DIRECTOR_QUERY = """
+                SELECT
+                    d.id,
+                    d.name
+                FROM directors d
+                WHERE d.id = :id
             """;
 
     private static final String SELECT_MANY_FILMS_QUERY = """
@@ -255,8 +264,13 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     }
 
     @Override
-    public boolean checkIfNotExists(Long id) {
+    public boolean checkIfFilmNotExists(Long id) {
         return findOne(SELECT_ONE_FILM_QUERY, Map.of("id", id)).isEmpty();
+    }
+
+    @Override
+    public boolean checkIfDirectorNotExists(Long id) {
+        return jdbc.query(SELECT_ONE_DIRECTOR_QUERY, Map.of("id", id), new DirectorRowMapper()).isEmpty();
     }
 
     @Override
