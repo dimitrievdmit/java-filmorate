@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.dto;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
@@ -11,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 @NoArgsConstructor(force = true)
 @RequiredArgsConstructor
 @Builder
-
-public class DirectorReceiveDTO {
-    @Min(value = 1L, message = "минимальный id для режиссера 1")
-    private final Long id;
+public class DirectorCreateDTO {
     @NotBlank
     private final String name;
 }

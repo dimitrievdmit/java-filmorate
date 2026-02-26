@@ -42,5 +42,5 @@ public class FilmSendDTO {
     private final List<Long> likes;
 
     @NoNullElements(message = "Режиссеры не могут содержать null-значения")
-    private final List<FilmDirectorSendDTO> directors;
+    private final List<DirectorSendDTO> directors;
 }

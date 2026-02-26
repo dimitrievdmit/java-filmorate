@@ -1,10 +1,13 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.dto.DirectorReceiveDTO;
+import ru.yandex.practicum.filmorate.dto.DirectorCreateDTO;
+import ru.yandex.practicum.filmorate.dto.DirectorSendDTO;
 import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.DirectorMapper;
 import ru.yandex.practicum.filmorate.mock.MockUsers;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.mock.MockFilms;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
@@ -13,6 +16,7 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static ru.yandex.practicum.filmorate.mock.MockUsers.getValidUser;
@@ -222,13 +226,13 @@ public abstract class BaseFilmServiceTest {
         Film created = getFilmService().createFilm(film);
 
         // Добавляем нескольких режиссёров (используем ID пользователей как ID режиссёров)
-        DirectorReceiveDTO director1 = new DirectorReceiveDTO(1L, "Test Director");
-        Long directorId1 = getDirectorService().createDirector(director1).getId();
-        DirectorReceiveDTO director2 = new DirectorReceiveDTO(2L, "Test Director");
-        Long directorId2 = getDirectorService().createDirector(director2).getId();
+        DirectorCreateDTO directorCreateDTO1 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director1 = getDirectorService().createDirector(directorCreateDTO1);
+        DirectorCreateDTO directorCreateDTO2 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director2 = getDirectorService().createDirector(directorCreateDTO2);
 
         // Предполагаем, что есть метод добавления режиссёров — реализуем через обновление фильма
-        Set<Long> directors = new HashSet<>(Arrays.asList(directorId1, directorId2));
+        Set<Director> directors = new HashSet<>(Arrays.asList(DirectorMapper.mapSendDTOToDomain(director1), DirectorMapper.mapSendDTOToDomain(director2)));
         Film updatedFilm = new Film(created.getId(), created.getName(), created.getDescription(), created.getReleaseDate(), created.getDuration(), created.getGenres(), created.getRating(), created.getLikes(), directors);
 
         getFilmService().updateFilm(updatedFilm);
@@ -309,17 +313,17 @@ public abstract class BaseFilmServiceTest {
         // Создаём несколько фильмов с разными данными
         Film film1 = MockFilms.getValidFilm(1L);
         film1.setGenres(new HashSet<>(Arrays.asList(FilmGenre.ACTION, FilmGenre.DRAMA)));
-        DirectorReceiveDTO director1 = new DirectorReceiveDTO(1L, "Test Director");
-        Long directorId1 = getDirectorService().createDirector(director1).getId();
-        DirectorReceiveDTO director2 = new DirectorReceiveDTO(2L, "Test Director");
-        Long directorId2 = getDirectorService().createDirector(director2).getId();
-        film1.setDirectors(new HashSet<>(Arrays.asList(directorId1, directorId2)));
+        DirectorCreateDTO directorCreateDTO1 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director1 = getDirectorService().createDirector(directorCreateDTO1);
+        DirectorCreateDTO directorCreateDTO2 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director2 = getDirectorService().createDirector(directorCreateDTO2);
+        film1.setDirectors(new HashSet<>(Arrays.asList(DirectorMapper.mapSendDTOToDomain(director1), DirectorMapper.mapSendDTOToDomain(director2))));
 
         Film film2 = MockFilms.getValidFilm(2L);
         film2.setGenres(new HashSet<>(List.of(FilmGenre.COMEDY)));
-        DirectorReceiveDTO director3 = new DirectorReceiveDTO(3L, "Test Director");
-        Long directorId3 = getDirectorService().createDirector(director3).getId();
-        film2.setDirectors(new HashSet<>(List.of(directorId3)));
+        DirectorCreateDTO directorCreateDTO3 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director3 = getDirectorService().createDirector(directorCreateDTO3);
+        film2.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director3))));
 
         Long userId1 = getUserService().createUser(getValidUser()).getId();
         Long userId2 = getUserService().createUser(getValidUser()).getId();
@@ -344,8 +348,10 @@ public abstract class BaseFilmServiceTest {
         assertTrue(retrieved1.getGenres().contains(FilmGenre.ACTION));
         assertTrue(retrieved1.getGenres().contains(FilmGenre.DRAMA));
         assertEquals(2, retrieved1.getDirectors().size());
-        assertTrue(retrieved1.getDirectors().contains(1L));
-        assertTrue(retrieved1.getDirectors().contains(2L));
+
+        Set<Long> actualIds = retrieved1.getDirectors().stream().map(Director::getId).collect(Collectors.toSet());
+        assertTrue(actualIds.contains(1L));
+        assertTrue(actualIds.contains(2L));
         assertEquals(1, retrieved1.getLikes().size());
         assertTrue(retrieved1.getLikes().contains(userId1));
 
@@ -355,7 +361,7 @@ public abstract class BaseFilmServiceTest {
         assertEquals(1, retrieved2.getGenres().size());
         assertTrue(retrieved2.getGenres().contains(FilmGenre.COMEDY));
         assertEquals(1, retrieved2.getDirectors().size());
-        assertTrue(retrieved2.getDirectors().contains(3L));
+        assertTrue(retrieved2.getDirectors().stream().map(Director::getId).collect(Collectors.toSet()).contains(3L));
         assertEquals(1, retrieved2.getLikes().size());
         assertTrue(retrieved2.getLikes().contains(userId2));
     }
@@ -365,17 +371,17 @@ public abstract class BaseFilmServiceTest {
         // Создаём фильмы
         Film film1 = MockFilms.getValidFilm(1L);
         film1.setGenres(new HashSet<>(Arrays.asList(FilmGenre.ACTION, FilmGenre.DRAMA)));
-        DirectorReceiveDTO director1 = new DirectorReceiveDTO(1L, "Test Director");
-        Long directorId1 = getDirectorService().createDirector(director1).getId();
-        DirectorReceiveDTO director2 = new DirectorReceiveDTO(2L, "Test Director");
-        Long directorId2 = getDirectorService().createDirector(director2).getId();
-        film1.setDirectors(new HashSet<>(Arrays.asList(directorId1, directorId2)));
+        DirectorCreateDTO directorCreateDTO1 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director1 = getDirectorService().createDirector(directorCreateDTO1);
+        DirectorCreateDTO directorCreateDTO2 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director2 = getDirectorService().createDirector(directorCreateDTO2);
+        film1.setDirectors(new HashSet<>(Arrays.asList(DirectorMapper.mapSendDTOToDomain(director1), DirectorMapper.mapSendDTOToDomain(director2))));
 
         Film film2 = MockFilms.getValidFilm(2L);
         film2.setGenres(new HashSet<>(List.of(FilmGenre.COMEDY)));
-        DirectorReceiveDTO director3 = new DirectorReceiveDTO(3L, "Test Director");
-        Long directorId3 = getDirectorService().createDirector(director3).getId();
-        film2.setDirectors(new HashSet<>(List.of(directorId3)));
+        DirectorCreateDTO directorCreateDTO3 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director3 = getDirectorService().createDirector(directorCreateDTO3);
+        film2.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director3))));
 
         Film created1 = getFilmService().createFilm(film1);
         Film created2 = getFilmService().createFilm(film2);
@@ -421,17 +427,17 @@ public abstract class BaseFilmServiceTest {
         // Создаём фильмы с разным количеством лайков
         Film film1 = MockFilms.getValidFilm(1L);
         film1.setGenres(new HashSet<>(Arrays.asList(FilmGenre.ACTION, FilmGenre.DRAMA)));
-        DirectorReceiveDTO director1 = new DirectorReceiveDTO(1L, "Test Director");
-        Long directorId1 = getDirectorService().createDirector(director1).getId();
-        DirectorReceiveDTO director2 = new DirectorReceiveDTO(2L, "Test Director");
-        Long directorId2 = getDirectorService().createDirector(director2).getId();
-        film1.setDirectors(new HashSet<>(Arrays.asList(directorId1, directorId2)));
+        DirectorCreateDTO directorCreateDTO1 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director1 = getDirectorService().createDirector(directorCreateDTO1);
+        DirectorCreateDTO directorCreateDTO2 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director2 = getDirectorService().createDirector(directorCreateDTO2);
+        film1.setDirectors(new HashSet<>(Arrays.asList(DirectorMapper.mapSendDTOToDomain(director1), DirectorMapper.mapSendDTOToDomain(director2))));
 
         Film film2 = MockFilms.getValidFilm(2L);
         film2.setGenres(new HashSet<>(List.of(FilmGenre.COMEDY)));
-        DirectorReceiveDTO director3 = new DirectorReceiveDTO(3L, "Test Director");
-        Long directorId3 = getDirectorService().createDirector(director3).getId();
-        film2.setDirectors(new HashSet<>(List.of(directorId3)));
+        DirectorCreateDTO directorCreateDTO3 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director3 = getDirectorService().createDirector(directorCreateDTO3);
+        film2.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director3))));
 
         Film created1 = getFilmService().createFilm(film1);
         Film created2 = getFilmService().createFilm(film2);
@@ -479,17 +485,17 @@ public abstract class BaseFilmServiceTest {
         // Создаём фильмы разных жанров
         Film dramaFilm = MockFilms.getValidFilm(1L);
         dramaFilm.setGenres(new HashSet<>(List.of(FilmGenre.DRAMA)));
-        DirectorReceiveDTO director1 = new DirectorReceiveDTO(1L, "Test Director");
-        Long directorId1 = getDirectorService().createDirector(director1).getId();
-        DirectorReceiveDTO director2 = new DirectorReceiveDTO(2L, "Test Director");
-        Long directorId2 = getDirectorService().createDirector(director2).getId();
-        dramaFilm.setDirectors(new HashSet<>(Arrays.asList(directorId1, directorId2)));
+        DirectorCreateDTO directorCreateDTO1 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director1 = getDirectorService().createDirector(directorCreateDTO1);
+        DirectorCreateDTO directorCreateDTO2 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director2 = getDirectorService().createDirector(directorCreateDTO2);
+        dramaFilm.setDirectors(new HashSet<>(Arrays.asList(DirectorMapper.mapSendDTOToDomain(director1), DirectorMapper.mapSendDTOToDomain(director2))));
 
         Film comedyFilm = MockFilms.getValidFilm(2L);
         comedyFilm.setGenres(new HashSet<>(List.of(FilmGenre.COMEDY)));
-        DirectorReceiveDTO director3 = new DirectorReceiveDTO(3L, "Test Director");
-        Long directorId3 = getDirectorService().createDirector(director3).getId();
-        comedyFilm.setDirectors(new HashSet<>(List.of(directorId3)));
+        DirectorCreateDTO directorCreateDTO3 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director3 = getDirectorService().createDirector(directorCreateDTO3);
+        comedyFilm.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director3))));
 
         Film createdDrama = getFilmService().createFilm(dramaFilm);
         getFilmService().createFilm(comedyFilm);
@@ -513,18 +519,18 @@ public abstract class BaseFilmServiceTest {
         Film oldFilm = MockFilms.getValidFilm(1L);
         oldFilm.setReleaseDate(LocalDate.of(1980, 1, 1));
         oldFilm.setGenres(new HashSet<>(List.of(FilmGenre.ACTION)));
-        DirectorReceiveDTO director1 = new DirectorReceiveDTO(1L, "Test Director");
-        Long directorId1 = getDirectorService().createDirector(director1).getId();
-        DirectorReceiveDTO director2 = new DirectorReceiveDTO(2L, "Test Director");
-        Long directorId2 = getDirectorService().createDirector(director2).getId();
-        oldFilm.setDirectors(new HashSet<>(Arrays.asList(directorId1, directorId2)));
+        DirectorCreateDTO directorCreateDTO1 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director1 = getDirectorService().createDirector(directorCreateDTO1);
+        DirectorCreateDTO directorCreateDTO2 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director2 = getDirectorService().createDirector(directorCreateDTO2);
+        oldFilm.setDirectors(new HashSet<>(Arrays.asList(DirectorMapper.mapSendDTOToDomain(director1), DirectorMapper.mapSendDTOToDomain(director2))));
 
         Film recentFilm = MockFilms.getValidFilm(2L);
         recentFilm.setReleaseDate(LocalDate.of(2023, 1, 1));
         recentFilm.setGenres(new HashSet<>(List.of(FilmGenre.COMEDY)));
-        DirectorReceiveDTO director3 = new DirectorReceiveDTO(3L, "Test Director");
-        Long directorId3 = getDirectorService().createDirector(director3).getId();
-        recentFilm.setDirectors(new HashSet<>(List.of(directorId3)));
+        DirectorCreateDTO directorCreateDTO3 = new DirectorCreateDTO("Test Director");
+        DirectorSendDTO director3 = getDirectorService().createDirector(directorCreateDTO3);
+        recentFilm.setDirectors(new HashSet<>(List.of(DirectorMapper.mapSendDTOToDomain(director3))));
 
         getFilmService().createFilm(oldFilm);
         Film createdRecent = getFilmService().createFilm(recentFilm);
@@ -545,7 +551,8 @@ public abstract class BaseFilmServiceTest {
         assertEquals(1, filmsList.getFirst().getGenres().size());
         assertEquals(FilmGenre.COMEDY, filmsList.getFirst().getGenres().iterator().next());
         assertEquals(1, filmsList.getFirst().getDirectors().size());
-        assertTrue(filmsList.getFirst().getDirectors().contains(directorId3));
+        Long actualId = filmsList.getFirst().getDirectors().stream().findAny().orElseThrow().getId();
+        assertEquals(actualId, director3.getId());
     }
 
     @Test

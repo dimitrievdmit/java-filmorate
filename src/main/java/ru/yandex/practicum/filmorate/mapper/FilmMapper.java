@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.dto.*;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
 import ru.yandex.practicum.filmorate.enums.FilmRating;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.*;
@@ -39,10 +40,13 @@ public final class FilmMapper {
                 ? film.getLikes().stream().toList()
                 : Collections.emptyList();
 
-        List<FilmDirectorSendDTO> directors = film.getDirectors() != null ?
-                film.getDirectors().stream()
-                        .map(FilmDirectorSendDTO::new)
-                        .toList()
+        // Преобразуем режиссёров: Director → DirectorSendDTO
+        List<DirectorSendDTO> directorDtos = film.getDirectors() != null
+                ? film.getDirectors().stream()
+                .filter(Objects::nonNull)  // Фильтруем null-элементы
+                .map(DirectorMapper::mapToSendDTO)
+                .sorted(Comparator.comparing(DirectorSendDTO::getId))  // сортировка для одинакового ответа
+                .toList()
                 : Collections.emptyList();
 
         return new FilmSendDTO(
@@ -54,7 +58,7 @@ public final class FilmMapper {
                 genreDtos,
                 mpaDto,
                 likes,
-                directors
+                directorDtos
         );
     }
 
@@ -84,10 +88,12 @@ public final class FilmMapper {
                 ? film.getLikes().stream().toList()
                 : Collections.emptyList();
 
-        List<FilmDirectorReceiveDTO> directors = film.getDirectors() != null
+        // Преобразуем режиссёров: Director → FilmDirectorReceiveDTO
+        List<FilmDirectorReceiveDTO> directorDtos = film.getDirectors() != null
                 ? film.getDirectors().stream()
-                .filter(Objects::nonNull)
-                .map(FilmDirectorReceiveDTO::new)
+                .filter(Objects::nonNull)  // Фильтруем null-элементы
+                .map(DirectorMapper::mapToFilmReceiveDTO)
+                .sorted(Comparator.comparing(FilmDirectorReceiveDTO::getId))  // сортировка для одинакового ответа
                 .toList()
                 : Collections.emptyList();
 
@@ -100,7 +106,7 @@ public final class FilmMapper {
                 genreDtos,
                 mpaDto,
                 likes,
-                directors
+                directorDtos
         );
     }
 
@@ -136,10 +142,12 @@ public final class FilmMapper {
                 ? new HashSet<>(filmDTO.getLikes())
                 : new HashSet<>();
 
-        Set<Long> directors = filmDTO.getDirectors() != null ?
-                filmDTO.getDirectors().stream()
-                        .map(FilmDirectorReceiveDTO::getId)
-                        .collect(Collectors.toSet())
+        // Преобразуем режиссёров: FilmDirectorReceiveDTO → Director
+        Set<Director> directors = filmDTO.getDirectors() != null
+                ? filmDTO.getDirectors().stream()
+                .filter(Objects::nonNull)  // Фильтруем null-элементы
+                .map(DirectorMapper::mapFilmReceiveDTOToDomain)
+                .collect(Collectors.toSet())
                 : new HashSet<>();
 
         return new Film(

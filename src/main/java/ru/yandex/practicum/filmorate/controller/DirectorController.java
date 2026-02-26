@@ -7,8 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.dto.DirectorReceiveDTO;
+import ru.yandex.practicum.filmorate.dto.DirectorCreateDTO;
 import ru.yandex.practicum.filmorate.dto.DirectorSendDTO;
+import ru.yandex.practicum.filmorate.dto.DirectorUpdateDTO;
 import ru.yandex.practicum.filmorate.service.DirectorService;
 
 import java.util.List;
@@ -25,15 +26,15 @@ public class DirectorController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public DirectorSendDTO createDirector(@Valid @RequestBody DirectorReceiveDTO receiveDTO) {
-        log.info("запрос создать режиссера с name:{}", receiveDTO.getName());
-        DirectorSendDTO sendDTO = directorService.createDirector(receiveDTO);
+    public DirectorSendDTO createDirector(@Valid @RequestBody DirectorCreateDTO createDTO) {
+        log.info("запрос создать режиссера с name:{}", createDTO.getName());
+        DirectorSendDTO sendDTO = directorService.createDirector(createDTO);
         log.info("режиссер name:{} успешно создан с id:{}", sendDTO.getName(), sendDTO.getId());
         return sendDTO;
     }
 
     @PutMapping
-    public DirectorSendDTO updateDirector(@Valid @RequestBody DirectorReceiveDTO director) {
+    public DirectorSendDTO updateDirector(@Valid @RequestBody DirectorUpdateDTO director) {
         log.info("запрос обновить режиссера с id:{}, name:{}", director.getId(), director.getName());
         DirectorSendDTO sendDTO = directorService.updateDirector(director);
         log.info("режиссер name:{} успешно обновлен с id:{}", sendDTO.getName(), sendDTO.getId());
