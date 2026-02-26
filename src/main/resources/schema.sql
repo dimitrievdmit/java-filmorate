@@ -97,6 +97,3 @@ CREATE TABLE IF NOT EXISTS film_director (
     FOREIGN KEY (director_id) REFERENCES directors(id) ON DELETE CASCADE,
     FOREIGN KEY (film_id) REFERENCES films(id) ON DELETE CASCADE
 );
-
--- CONSTRAINT_INDEX_6 требует уникальности имен
-

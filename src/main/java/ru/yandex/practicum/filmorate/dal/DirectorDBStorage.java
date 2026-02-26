@@ -22,7 +22,7 @@ public class DirectorDBStorage extends BaseDBRepository<Director> implements Dir
 
     private static final String UPDATE_DIRECTOR_BY_ID = "UPDATE directors SET name = :name WHERE id = :id";
 
-    private static final String DELETE_DIRECTOR_BY_ID = "DELETE directors WHERE id = :id";
+    private static final String DELETE_DIRECTOR_BY_ID = "DELETE FROM directors WHERE id = :id";
 
     private static final String SELECT_DIRECTOR_BY_ID = "SELECT * FROM directors WHERE id = :id";
 
