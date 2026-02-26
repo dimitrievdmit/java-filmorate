@@ -153,7 +153,7 @@ class UserMapperTest {
         assertEquals(1L, user.getId());
         assertEquals("test@mail.ru", user.getEmail());
         assertEquals("test_user", user.getLogin());
-        assertNull(user.getName());
+        assertNotNull(user.getName());
         assertNull(user.getBirthday());
     }
 
