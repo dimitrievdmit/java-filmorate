@@ -26,21 +26,21 @@ public class DirectorMapper {
 
     public static Director mapFilmReceiveDTOToDomain(FilmDirectorReceiveDTO directorDTO) {
         return Director.builder()
-                .id(directorDTO.getId())
+                .id(directorDTO.id())
                 .build();
     }
 
     public static Director mapCreateDTOToDomain(DirectorCreateDTO directorDTO) {
         return Director.builder()
                 .id(null)
-                .name(directorDTO.getName())
+                .name(directorDTO.name())
                 .build();
     }
 
     public static Director mapUpdateDTOToDomain(DirectorUpdateDTO directorDTO) {
         return Director.builder()
-                .id(directorDTO.getId())
-                .name(directorDTO.getName())
+                .id(directorDTO.id())
+                .name(directorDTO.name())
                 .build();
     }
 

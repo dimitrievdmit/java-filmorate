@@ -27,7 +27,7 @@ public class DirectorController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public DirectorSendDTO createDirector(@Valid @RequestBody DirectorCreateDTO createDTO) {
-        log.info("запрос создать режиссера с name:{}", createDTO.getName());
+        log.info("запрос создать режиссера с name:{}", createDTO.name());
         DirectorSendDTO sendDTO = directorService.createDirector(createDTO);
         log.info("режиссер name:{} успешно создан с id:{}", sendDTO.name(), sendDTO.id());
         return sendDTO;
@@ -35,7 +35,7 @@ public class DirectorController {
 
     @PutMapping
     public DirectorSendDTO updateDirector(@Valid @RequestBody DirectorUpdateDTO director) {
-        log.info("запрос обновить режиссера с id:{}, name:{}", director.getId(), director.getName());
+        log.info("запрос обновить режиссера с id:{}, name:{}", director.id(), director.name());
         DirectorSendDTO sendDTO = directorService.updateDirector(director);
         log.info("режиссер name:{} успешно обновлен с id:{}", sendDTO.name(), sendDTO.id());
         return sendDTO;

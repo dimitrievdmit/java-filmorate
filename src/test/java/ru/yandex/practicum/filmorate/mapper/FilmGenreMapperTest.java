@@ -18,8 +18,8 @@ class FilmGenreMapperTest {
         FilmGenreSendDTO dto = FilmGenreMapper.mapToDTO(genre);
 
         // Проверяем результат
-        assertEquals(genre.getId(), dto.getId());
-        assertEquals(genre.getLocalisedName(), dto.getName());
+        assertEquals(genre.getId(), dto.id());
+        assertEquals(genre.getLocalisedName(), dto.name());
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -34,8 +34,8 @@ class FilmGenreMapperTest {
         // Проверяем конвертацию всех возможных значений enum
         for (FilmGenre genre : FilmGenre.values()) {
             FilmGenreSendDTO dto = FilmGenreMapper.mapToDTO(genre);
-            assertEquals(genre.getId(), dto.getId());
-            assertEquals(genre.getLocalisedName(), dto.getName());
+            assertEquals(genre.getId(), dto.id());
+            assertEquals(genre.getLocalisedName(), dto.name());
         }
     }
 
@@ -48,7 +48,7 @@ class FilmGenreMapperTest {
         FilmGenreReceiveDTO receiveDTO = FilmGenreMapper.mapDTOToReceiveDTO(sendDTO);
 
         // Проверяем результат
-        assertEquals(sendDTO.getId(), receiveDTO.getId());
+        assertEquals(sendDTO.id(), receiveDTO.id());
     }
 
     @SuppressWarnings("DataFlowIssue")

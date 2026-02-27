@@ -17,8 +17,8 @@ class FilmRatingMapperTest {
         FilmRatingSendDTO dto = FilmRatingMapper.mapToDTO(rating);
 
         // Проверяем результат
-        assertEquals(rating.getId(), dto.getId());
-        assertEquals(rating.getNameWithDash(), dto.getName());
+        assertEquals(rating.getId(), dto.id());
+        assertEquals(rating.getNameWithDash(), dto.name());
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -33,8 +33,8 @@ class FilmRatingMapperTest {
         // Проверяем конвертацию всех возможных значений enum
         for (FilmRating rating : FilmRating.values()) {
             FilmRatingSendDTO dto = FilmRatingMapper.mapToDTO(rating);
-            assertEquals(rating.getId(), dto.getId());
-            assertEquals(rating.getNameWithDash(), dto.getName());
+            assertEquals(rating.getId(), dto.id());
+            assertEquals(rating.getNameWithDash(), dto.name());
         }
     }
 }

@@ -28,7 +28,7 @@ public class GenreController {
         return genreService.getAllGenres()
                 .stream()
                 .map(FilmGenreMapper::mapToDTO)
-                .sorted(Comparator.comparing(FilmGenreSendDTO::getId))
+                .sorted(Comparator.comparing(FilmGenreSendDTO::id))
                 .toList();
     }
 

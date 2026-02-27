@@ -276,7 +276,7 @@ public class UserDbStorage extends BaseDBRepository<User> implements UserStorage
                     friendshipRowMapper
             );
             return friendships.stream()
-                    .collect(Collectors.groupingBy(Friendship::getUserId));
+                    .collect(Collectors.groupingBy(Friendship::userId));
         } catch (Exception e) {
             log.error("Ошибка при выгрузке дружеских связей", e);
             throw new InternalServerException("Не удалось выгрузить дружеские связи", e);
@@ -296,7 +296,7 @@ public class UserDbStorage extends BaseDBRepository<User> implements UserStorage
 
 
                     List<Friendship> userFriends = friendships.getOrDefault(user.getId(), Collections.emptyList());
-                    userFriends.forEach(f -> enriched.addFriend(f.getFriendId(), f.getStatus()));
+                    userFriends.forEach(f -> enriched.addFriend(f.friendId(), f.status()));
 
                     return enriched;
                 })

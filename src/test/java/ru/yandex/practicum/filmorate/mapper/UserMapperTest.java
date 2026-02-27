@@ -56,11 +56,11 @@ class UserMapperTest {
 
         UserReceiveDTO dto = UserMapper.mapToReceiveDTO(user);
 
-        assertEquals(1L, dto.getId());
-        assertEquals("test@mail.ru", dto.getEmail());
-        assertEquals("test_user", dto.getLogin());
-        assertEquals("Test User", dto.getName());
-        assertEquals(LocalDate.of(1990, 1, 1), dto.getBirthday());
+        assertEquals(1L, dto.id());
+        assertEquals("test@mail.ru", dto.email());
+        assertEquals("test_user", dto.login());
+        assertEquals("Test User", dto.name());
+        assertEquals(LocalDate.of(1990, 1, 1), dto.birthday());
     }
 
     @Test
