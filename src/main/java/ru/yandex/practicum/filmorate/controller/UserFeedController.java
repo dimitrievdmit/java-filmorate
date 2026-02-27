@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.dto.event.FeedEventDTO;
 import ru.yandex.practicum.filmorate.mapper.FeedEventMapper;
 import ru.yandex.practicum.filmorate.model.FeedEvent;
 import ru.yandex.practicum.filmorate.service.FeedService;
-import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
 import java.util.List;
@@ -24,7 +23,6 @@ import java.util.stream.Collectors;
 public class UserFeedController {
 
     private final FeedService feedService;
-    private final UserService userService;
 
     @GetMapping("/{id}/feed")
     public Collection<FeedEventDTO> getUserFeed(
@@ -33,7 +31,6 @@ public class UserFeedController {
             @Positive(message = "Параметр limit должен быть положительным числом")
             int limit
     ) {
-        userService.checkThatUserExists(id);
         List<FeedEvent> feed = feedService.getFeedForUser(id, limit);
 
         return feed.stream()

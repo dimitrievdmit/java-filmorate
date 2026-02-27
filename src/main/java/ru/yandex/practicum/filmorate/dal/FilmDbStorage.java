@@ -193,6 +193,22 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             WHERE film_id = :filmId
             """;
 
+    private static final String SELECT_COMMON_FILMS_WITH_POPULARITY = """
+            SELECT
+            f.id,
+            f.name,
+            f.description,
+            f.release_date,
+            f.duration,
+            f.rating_id
+            FROM films f
+            JOIN film_likes fl1 ON f.id = fl1.film_id AND fl1.user_id = :userId
+            JOIN film_likes fl2 ON f.id = fl2.film_id AND fl2.user_id = :friendId
+            LEFT JOIN film_likes fl ON f.id = fl.film_id
+            GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.rating_id
+            ORDER BY COUNT(fl.user_id) DESC
+            """;
+
     private static final String SELECT_RECOMMENDED_FILMS = """
             SELECT
                 film.id,
@@ -547,5 +563,15 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                     return newFilm;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<Film> getCommonFilms(Long userId, Long friendId) {
+        Map<String, Object> params = Map.of("userId", userId, "friendId", friendId);
+        List<Film> films = findMany(SELECT_COMMON_FILMS_WITH_POPULARITY, params);
+        if (films == null || films.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return getFilmAdditionalData(films);
     }
 }

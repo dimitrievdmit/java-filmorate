@@ -112,29 +112,11 @@ public class FilmService {
 
     public Collection<Film> getCommonFilms(Long userId, Long friendId) {
         log.info("Получение общих фильмов для пользователей {} и {}", userId, friendId);
-
         // Проверка существования пользователей
         userService.checkThatUserExists(userId);
         userService.checkThatUserExists(friendId);
 
-        // Получаем карты: userId -> Set<filmId>
-        Map<Long, Set<Long>> filmsByUsers = likeStorage.getFilmLikesByUsers(List.of(userId, friendId));
-
-        Set<Long> userLikes = new HashSet<>(filmsByUsers.getOrDefault(userId, Collections.emptySet()));
-        Set<Long> friendLikes = new HashSet<>(filmsByUsers.getOrDefault(friendId, Collections.emptySet()));
-
-        // Пересечение — общие фильмы
-        userLikes.retainAll(friendLikes);
-        if (userLikes.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        Collection<Film> films = filmStorage.getFilms(new ArrayList<>(userLikes));
-
-        // Сортируем по популярности (кол-во лайков) по убыванию
-        return films.stream()
-                .sorted(Comparator.comparingInt((Film f) -> f.getLikes() == null ? 0 : f.getLikes().size()).reversed())
-                .toList();
+        return filmStorage.getCommonFilms(userId, friendId);
     }
 
     public Collection<Film> getFilmsByTitleAndDirectorName(String query, FilmSearchType filmSearchType) {
