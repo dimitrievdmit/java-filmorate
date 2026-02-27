@@ -146,21 +146,4 @@ public class LikeDbStorage extends BaseDBRepository<Film> implements LikeStorage
                 ));
     }
 
-    @Override
-    public Map<Long, Set<Long>> getFilmLikesByUsers(List<Long> userIds) {
-        // Получаем все лайки (ид фильмов) для указанных пользователей
-        // Запрос возвращает пары (film_id, user_id)
-        return jdbc.query(
-                        SELECT_LIKES_BY_USERS_QUERY,
-                        Map.of("userIds", userIds),
-                        filmLikeRowMapper
-                )
-                .stream()
-                // Группируем по user_id: для каждого пользователя — набор ID фильмов, которым поставили лайк
-                .collect(Collectors.groupingBy(
-                        Map.Entry::getValue,
-                        Collectors.mapping(Map.Entry::getKey, Collectors.toSet())
-                ));
-    }
-
 }
