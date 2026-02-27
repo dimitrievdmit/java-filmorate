@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dal.ReviewRatingRepository;
 import ru.yandex.practicum.filmorate.exception.AlreadyExistException;
 
@@ -18,7 +17,6 @@ public class ReviewRatingService {
 
     private final ReviewRatingRepository reviewRatingRepository;
 
-    @Transactional
     public void addLike(Long reviewId, Long userId) {
         log.info("Пользователь c id=\"{}\" ставит лайк отзыву с id=\"{}\"", userId, reviewId);
 
@@ -27,7 +25,6 @@ public class ReviewRatingService {
         reviewRatingRepository.addLike(reviewId, userId);
     }
 
-    @Transactional
     public void addDislike(Long reviewId, Long userId) {
         log.info("Пользователь c id=\"{}\" ставит дизлайк отзыву с id=\"{}\"", userId, reviewId);
 

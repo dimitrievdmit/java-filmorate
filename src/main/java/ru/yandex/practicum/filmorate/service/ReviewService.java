@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dal.ReviewRepository;
 import ru.yandex.practicum.filmorate.dto.review.ReviewRequestDto;
 import ru.yandex.practicum.filmorate.dto.review.ReviewResponseDto;
@@ -30,7 +29,6 @@ public class ReviewService {
     private final FilmService filmService;
     private final FeedService feedService;
 
-    @Transactional
     public ReviewResponseDto create(ReviewRequestDto dto) {
         log.info("Создание отзыва пользователем с id=\"{}\" к фильму с id=\"{}\"", dto.userId(), dto.filmId());
 
@@ -45,7 +43,6 @@ public class ReviewService {
         return ReviewMapper.mapToResponseDto(review, reviewRatingService.getUseful(review.getId()));
     }
 
-    @Transactional
     public ReviewResponseDto update(ReviewUpdateDto dto) {
         log.info("Обновление отзыва с id=\"{}\"", dto.reviewId());
 
@@ -76,7 +73,6 @@ public class ReviewService {
         return ReviewMapper.mapToResponseDto(review, useful);
     }
 
-    @Transactional(readOnly = true)
     public List<ReviewResponseDto> getReviews(Long filmId, int count) {
         log.info("Получение отзывов для фильма с id=\"{}\" в количестве {}", filmId, count);
 
