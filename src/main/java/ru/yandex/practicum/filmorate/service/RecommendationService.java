@@ -15,9 +15,6 @@ import java.util.Collections;
 public class RecommendationService {
     private final FilmStorage filmStorage;
 
-    private record UserWithSimilarity(Long userId, int similarity) {
-    }
-
     public RecommendationService(
             FilmStorage filmStorage
     ) {
