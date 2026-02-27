@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.dal.FeedEventStorage;
 import ru.yandex.practicum.filmorate.enums.EventOperation;
 import ru.yandex.practicum.filmorate.enums.EventType;
 import ru.yandex.practicum.filmorate.model.FeedEvent;
+import ru.yandex.practicum.filmorate.validator.UserExistenceValidator;
 
 import java.time.Instant;
 import java.util.List;
@@ -17,8 +18,10 @@ import java.util.List;
 public class FeedService {
 
     private final FeedEventStorage feedEventStorage;
+    private final UserExistenceValidator userExistenceValidator;
 
     public List<FeedEvent> getFeedForUser(Long userId, int limit) {
+        userExistenceValidator.checkThatUserExists(userId);
         return feedEventStorage.getFeedForUser(userId, limit);
     }
 
