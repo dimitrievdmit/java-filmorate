@@ -46,8 +46,8 @@ public class DirectorMapper {
 
     public static Director mapSendDTOToDomain(DirectorSendDTO directorDTO) {
         return Director.builder()
-                .id(directorDTO.getId())
-                .name(directorDTO.getName())
+                .id(directorDTO.id())
+                .name(directorDTO.name())
                 .build();
     }
 

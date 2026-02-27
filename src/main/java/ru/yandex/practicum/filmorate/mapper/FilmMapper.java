@@ -45,7 +45,7 @@ public final class FilmMapper {
                 ? film.getDirectors().stream()
                 .filter(Objects::nonNull)  // Фильтруем null-элементы
                 .map(DirectorMapper::mapToSendDTO)
-                .sorted(Comparator.comparing(DirectorSendDTO::getId))  // сортировка для одинакового ответа
+                .sorted(Comparator.comparing(DirectorSendDTO::id))  // сортировка для одинакового ответа
                 .toList()
                 : Collections.emptyList();
 

@@ -284,7 +284,7 @@ class FilmSearchServiceTest {
                         hasItems("Комедия", "Драма")))
                 // Проверяем режиссёра популярного фильма
                 .andExpect(jsonPath("$[0].directors.length()").value(1))
-                .andExpect(jsonPath("$[0].directors[0].id").value(director1.getId()))
+                .andExpect(jsonPath("$[0].directors[0].id").value(director1.id()))
 //                .andExpect(jsonPath("$[0].directors[0].name").value("Director One"))
                 // Проверяем рейтинг популярного фильма
                 .andExpect(jsonPath("$[0].mpa.id").value(3)) // PG_13
@@ -299,7 +299,7 @@ class FilmSearchServiceTest {
                 .andExpect(jsonPath("$[1].genres[0].name").value("Боевик"))
                 // Проверяем режиссёра непопулярного фильма
                 .andExpect(jsonPath("$[1].directors.length()").value(1))
-                .andExpect(jsonPath("$[1].directors[0].id").value(director2.getId()))
+                .andExpect(jsonPath("$[1].directors[0].id").value(director2.id()))
 //                .andExpect(jsonPath("$[1].directors[0].name").value("Director Two"))
                 // Проверяем рейтинг непопулярного фильма
                 .andExpect(jsonPath("$[1].mpa.id").value(4)) // R

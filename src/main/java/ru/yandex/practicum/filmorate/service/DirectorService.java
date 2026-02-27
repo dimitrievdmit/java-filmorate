@@ -34,7 +34,7 @@ public class DirectorService {
 
         directorStorage.updateDirector(director);
         DirectorSendDTO sendDTO = DirectorMapper.mapToSendDTO(director);
-        log.debug("обновлен режиссер id:{} name:{}", sendDTO.getId(), sendDTO.getName());
+        log.debug("обновлен режиссер id:{} name:{}", sendDTO.id(), sendDTO.name());
         return sendDTO;
     }
 
@@ -52,7 +52,7 @@ public class DirectorService {
     public List<DirectorSendDTO> getAllDirectors() {
         return directorStorage.getAllDirectors().stream()
                 .map(DirectorMapper::mapToSendDTO)
-                .sorted(Comparator.comparing(DirectorSendDTO::getId))
+                .sorted(Comparator.comparing(DirectorSendDTO::id))
                 .toList();
     }
 

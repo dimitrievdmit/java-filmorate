@@ -29,7 +29,7 @@ public class DirectorController {
     public DirectorSendDTO createDirector(@Valid @RequestBody DirectorCreateDTO createDTO) {
         log.info("запрос создать режиссера с name:{}", createDTO.getName());
         DirectorSendDTO sendDTO = directorService.createDirector(createDTO);
-        log.info("режиссер name:{} успешно создан с id:{}", sendDTO.getName(), sendDTO.getId());
+        log.info("режиссер name:{} успешно создан с id:{}", sendDTO.name(), sendDTO.id());
         return sendDTO;
     }
 
@@ -37,7 +37,7 @@ public class DirectorController {
     public DirectorSendDTO updateDirector(@Valid @RequestBody DirectorUpdateDTO director) {
         log.info("запрос обновить режиссера с id:{}, name:{}", director.getId(), director.getName());
         DirectorSendDTO sendDTO = directorService.updateDirector(director);
-        log.info("режиссер name:{} успешно обновлен с id:{}", sendDTO.getName(), sendDTO.getId());
+        log.info("режиссер name:{} успешно обновлен с id:{}", sendDTO.name(), sendDTO.id());
         return sendDTO;
     }
 
