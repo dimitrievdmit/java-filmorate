@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.dal;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -121,13 +120,14 @@ public class LikeDbStorage extends BaseDBRepository<Film> implements LikeStorage
                 "filmId", film.getId(),
                 "userId", userId
         );
-        try {
-            Map.Entry<Long, Long> result = jdbc.queryForObject(SELECT_SINGLE_LIKE_QUERY, params, filmLikeRowMapper);
-            return Optional.ofNullable(result).isPresent();
-        } catch (EmptyResultDataAccessException ignored) {
-            return false;
-        }
+        List<Map.Entry<Long, Long>> results = jdbc.query(
+                SELECT_SINGLE_LIKE_QUERY,
+                params,
+                filmLikeRowMapper
+        );
+        return !results.isEmpty();
     }
+
 
     @Override
     public Map<Long, Set<Long>> getUserLikesByFilms(List<Long> filmIds) {
