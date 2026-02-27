@@ -193,6 +193,35 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             WHERE film_id = :filmId
             """;
 
+    private static final String SELECT_RECOMMENDED_FILMS = """
+            SELECT
+                film.id,
+                film.name,
+                film.description,
+                film.release_date,
+                film.duration,
+                film.rating_id
+            FROM (
+                SELECT
+                    recommended_film.film_id,
+                    COUNT(DISTINCT similar_user.user_id) AS similarity_based_popularity
+                FROM film_likes target_user_likes
+                JOIN film_likes similar_user ON target_user_likes.film_id = similar_user.film_id
+                JOIN film_likes recommended_film ON similar_user.user_id = recommended_film.user_id
+                LEFT JOIN film_likes already_liked_by_target ON recommended_film.film_id = already_liked_by_target.film_id
+                    AND already_liked_by_target.user_id = :targetUser
+                WHERE
+                    target_user_likes.user_id = :targetUser
+                    AND similar_user.user_id != :targetUser
+                    AND already_liked_by_target.film_id IS NULL
+                GROUP BY recommended_film.film_id
+            ) AS film_recommendation_metrics
+            JOIN films film ON film_recommendation_metrics.film_id = film.id
+            ORDER BY film_recommendation_metrics.similarity_based_popularity DESC, film.id
+            LIMIT :count
+            """;
+
+
     @SuppressWarnings("unused")
     public FilmDbStorage(
             NamedParameterJdbcTemplate jdbc,
@@ -259,6 +288,15 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         }
 
         return getManyFilmsWithAdditionalData(SELECT_TOP_FILMS_BY_TITLE_AND_DIRECTOR_NAME_QUERY, params);
+    }
+
+    @Override
+    public Collection<Film> getRecommendedFilms(Long userId, Long count) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("targetUser", userId);
+        params.put("count", count);
+
+        return getManyFilmsWithAdditionalData(SELECT_RECOMMENDED_FILMS, params);
     }
 
     @Override
