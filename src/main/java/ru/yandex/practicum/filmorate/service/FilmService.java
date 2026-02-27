@@ -159,22 +159,9 @@ public class FilmService {
         }
     }
 
-    public List<FilmSendDTO> getSortedDirectorFilms(long directorId, String sortBy) {
-        Comparator<Film> comparator = null;
+    public List<Film> getSortedDirectorFilms(long directorId, String sortBy) {
 
         checkThatDirectorExists(directorId);
-
-        List<Film> films = filmStorage.getDirectorFilms(directorId);
-        if (films.isEmpty()) return new ArrayList<>();
-
-        if (sortBy.equals("year")) comparator = Comparator.comparing(Film::getReleaseDate);
-        if (sortBy.equals("likes")) comparator = Comparator.comparing((Film film) -> film.getLikes().size()).reversed();
-
-        if (comparator == null) throw new IllegalArgumentException("атрибут сортировки задан неверно");
-
-        return films.stream()
-                .sorted(comparator)
-                .map(FilmMapper::mapToSendDTO)
-                .toList();
+        return filmStorage.getDirectorFilms(directorId, sortBy);
     }
 }

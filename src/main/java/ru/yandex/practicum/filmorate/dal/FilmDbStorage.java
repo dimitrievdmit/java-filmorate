@@ -170,7 +170,21 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 WHERE film_id = :filmId AND director_id = :genreId
             """;
 
-    private static final String GET_DIRECTOR_FILMS_BY_ID = """
+    private static final String GET_DIRECTOR_FILMS_BY_YEAR = """
+                    SELECT
+                    f.id,
+                    f.name,
+                    f.description,
+                    f.release_date,
+                    f.duration,
+                    f.rating_id
+                    FROM films f
+                    JOIN film_director fd ON fd.film_id = f.id
+                    WHERE fd.director_id = :directorId
+                    ORDER BY f.release_date ASC
+                    """;
+
+    private static final String GET_DIRECTOR_FILMS_BY_LIKES = """
                     SELECT
                     f.id,
                     f.name,
@@ -178,10 +192,18 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                     f.release_date,
                     f.duration,
                     f.rating_id,
-                    fd.director_id
+                    COUNT(fl.film_id) AS likes_count,
                     FROM films f
                     JOIN film_director fd ON fd.film_id = f.id
+                    LEFT JOIN film_likes fl ON fl.film_id = f.id
                     WHERE fd.director_id = :directorId
+                    GROUP BY f.id,
+                    f.name,
+                    f.description,
+                    f.release_date,
+                    f.duration,
+                    f.rating_id
+                    ORDER BY likes_count DESC
                     """;
 
     @SuppressWarnings("unused")
@@ -412,10 +434,17 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
-    public List<Film> getDirectorFilms(long directorId) {
-
+    public List<Film> getDirectorFilms(long directorId, String sortBy) {
         MapSqlParameterSource params = new MapSqlParameterSource("directorId", directorId);
-        List<Film> films = jdbc.query(GET_DIRECTOR_FILMS_BY_ID, params, mapper);
+        String query;
+
+        if (sortBy.equals("year")) {
+            query = GET_DIRECTOR_FILMS_BY_YEAR;
+        } else {
+            query = GET_DIRECTOR_FILMS_BY_LIKES;
+        }
+
+        List<Film> films = jdbc.query(query, params, mapper);
         List<Long> filmIds = films.stream()
                 .map(Film::getId)
                 .toList();

@@ -89,7 +89,9 @@ public class FilmController {
                                                     @RequestParam()
                                                     @Pattern(regexp = "year|likes", message = "атрибут sortBy задан не верно")
                                                     String sortBy) {
-        return filmService.getSortedDirectorFilms(directorId, sortBy);
+        return filmService.getSortedDirectorFilms(directorId, sortBy).stream()
+                .map(FilmMapper::mapToSendDTO)
+                .toList();
     }
 
     @GetMapping("/popular")
