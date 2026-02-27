@@ -2,10 +2,11 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.filmorate.dal.ReviewRepository;import ru.yandex.practicum.filmorate.dto.review.ReviewRequestDto;
+import ru.yandex.practicum.filmorate.dal.ReviewRepository;
+import ru.yandex.practicum.filmorate.dto.review.ReviewRequestDto;
 import ru.yandex.practicum.filmorate.dto.review.ReviewResponseDto;
 import ru.yandex.practicum.filmorate.dto.review.ReviewUpdateDto;
 import ru.yandex.practicum.filmorate.enums.EventOperation;
@@ -19,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@Profile("db")
 @RequiredArgsConstructor
 @Slf4j
 public class ReviewService {

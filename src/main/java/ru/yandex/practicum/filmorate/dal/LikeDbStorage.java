@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.dal;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
+
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unused")
 @Slf4j
 @Repository
-@Profile("db")  // аннотация @Qualifier в сервисах мешала настроить тесты сразу на обе реализации
 public class LikeDbStorage extends BaseDBRepository<Film> implements LikeStorage {
 
     private final FilmLikeRowMapper filmLikeRowMapper;

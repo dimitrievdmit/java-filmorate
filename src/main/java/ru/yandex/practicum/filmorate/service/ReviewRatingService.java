@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dal.ReviewRatingRepository;
@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@Profile("db")
 @AllArgsConstructor
 @Slf4j
 public class ReviewRatingService {

@@ -21,17 +21,17 @@ public class FeedEventDbStorage implements FeedEventStorage {
     private final RowMapper<FeedEvent> rowMapper;
 
     private static final String INSERT_EVENT = """
-        INSERT INTO user_feed (user_id, event_type, operation, entity_id, timestamp)
-        VALUES (:userId, :eventType, :operation, :entityId, :timestamp)
-        """;
+            INSERT INTO user_feed (user_id, event_type, operation, entity_id, timestamp)
+            VALUES (:userId, :eventType, :operation, :entityId, :timestamp)
+            """;
 
     private static final String SELECT_FEED = """
-        SELECT id, user_id, event_type, operation, entity_id, timestamp
-        FROM user_feed
-        WHERE user_id = :userId
-        ORDER BY timestamp
-        LIMIT :limit
-        """;
+            SELECT id, user_id, event_type, operation, entity_id, timestamp
+            FROM user_feed
+            WHERE user_id = :userId
+            ORDER BY timestamp
+            LIMIT :limit
+            """;
 
     public FeedEventDbStorage(NamedParameterJdbcTemplate jdbc, RowMapper<FeedEvent> rowMapper) {
         this.jdbc = jdbc;

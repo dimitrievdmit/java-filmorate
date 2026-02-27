@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.dal;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
+
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unused")
 @Slf4j
 @Repository
-@Profile("db")  // аннотация @Qualifier в сервисах мешала настроить тесты сразу на обе реализации
 public class UserDbStorage extends BaseDBRepository<User> implements UserStorage {
 
     private final FriendshipRowMapper friendshipRowMapper;

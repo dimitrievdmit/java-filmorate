@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.dal;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
+
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
-@Profile("db")  // аннотация @Qualifier в сервисах мешала настроить тесты сразу на обе реализации
 public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage {
 
     private final LikeStorage likeStorage;
@@ -171,28 +170,28 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             """;
 
     private static final String GET_DIRECTOR_FILMS_BY_ID = """
-                    SELECT
-                    f.id,
-                    f.name,
-                    f.description,
-                    f.release_date,
-                    f.duration,
-                    f.rating_id,
-                    fd.director_id
-                    FROM films f
-                    JOIN film_director fd ON fd.film_id = f.id
-                    WHERE fd.director_id = :directorId
-                    """;
+            SELECT
+            f.id,
+            f.name,
+            f.description,
+            f.release_date,
+            f.duration,
+            f.rating_id,
+            fd.director_id
+            FROM films f
+            JOIN film_director fd ON fd.film_id = f.id
+            WHERE fd.director_id = :directorId
+            """;
 
     @SuppressWarnings("unused")
     private static final String SELECT_FILM_DIRECTORS_BY_ID = """
-                    SELECT
-                    fd.director_id
-                    d.name as director_name
-                    FROM film_director fd
-                    JOIN directors d ON fd.director_id = d.id
-                    WHERE film_id = :filmId
-                    """;
+            SELECT
+            fd.director_id
+            d.name as director_name
+            FROM film_director fd
+            JOIN directors d ON fd.director_id = d.id
+            WHERE film_id = :filmId
+            """;
 
     @SuppressWarnings("unused")
     public FilmDbStorage(
