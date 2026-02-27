@@ -2,13 +2,15 @@ package ru.yandex.practicum.filmorate.dal;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.sql.Array;
+import java.util.*;
 
 @Slf4j
 @Repository
@@ -27,6 +29,13 @@ public class DirectorDBStorage extends BaseDBRepository<Director> implements Dir
     private static final String SELECT_DIRECTOR_BY_ID = "SELECT * FROM directors WHERE id = :id";
 
     private static final String SELECT_ALL_DIRECTORS = "SELECT * FROM directors ORDER BY id ASC";
+
+    private static final String INSERT_DIRECTOR_QUERY = """
+                INSERT INTO film_director (film_id, director_id)
+                VALUES (:filmId, :director_id)
+            """;
+
+    private static final String DELETE_DIRECTOR_QUERY = "DELETE FROM film_director WHERE film_id = :filmId";
 
     @Override
     public Director createDirector(Director director) {
@@ -67,5 +76,26 @@ public class DirectorDBStorage extends BaseDBRepository<Director> implements Dir
     public boolean checkIfNotExists(Long id) {
         Map<String, Object> params = Map.of("id", id);
         return findOne(SELECT_DIRECTOR_BY_ID, params).isEmpty();
+    }
+
+    @Override
+    public void updateDirectorsForFilm(Set<Long> directorIds, long filmId, Boolean reset) {
+        if (reset) {
+
+            // 1. Удаляем всех существующих режиссеров для данного фильма
+            update(DELETE_DIRECTOR_QUERY, Map.of("filmId", filmId), false);
+        }   // 2. Если режиссеры указаны — добавляем их в БД
+        if (directorIds != null && !directorIds.isEmpty()) {
+            // Формируем массив параметров для каждого режиссера
+            SqlParameterSource[] batch = directorIds.stream()
+                    .map(id -> new MapSqlParameterSource()
+                            .addValue("filmId", filmId)
+                            .addValue("director_id", id))
+                    .toArray(SqlParameterSource[]::new);
+
+            // Выполняем batch-вставку
+            jdbc.batchUpdate(INSERT_DIRECTOR_QUERY, batch);
+
+        }
     }
 }

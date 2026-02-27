@@ -9,7 +9,7 @@ import java.util.List;
 public interface FilmStorage {
     Collection<Film> getAllFilms();
 
-    Film createFilm(Film film);
+    void createFilm(Film film);
 
     Film getFilm(Long id);
 
@@ -19,7 +19,7 @@ public interface FilmStorage {
 
     Film removeGenre(Long id, Integer genreId);
 
-    Film updateFilm(Film newFilm);
+    void updateFilm(Film newFilm);
 
     void deleteFilm(Long id);
 

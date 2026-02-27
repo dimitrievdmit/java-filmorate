@@ -152,18 +152,12 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 VALUES (:filmId, :genreId)
             """;
 
-    private static final String INSERT_DIRECTOR_QUERY = """
-                INSERT INTO film_director (film_id, director_id)
-                VALUES (:filmId, :director_id)
-            """;
-
     private static final String DELETE_GENRES_QUERY = "DELETE FROM film_genres WHERE film_id = :filmId";
     private static final String DELETE_SINGLE_GENRE_QUERY = """
                 DELETE FROM film_genres
                 WHERE film_id = :filmId AND genre_id = :genreId
             """;
 
-    private static final String DELETE_DIRECTOR_QUERY = "DELETE FROM film_director WHERE film_id = :filmId";
     @SuppressWarnings("unused")
     private static final String DELETE_SINGLE_DIRECTOR_QUERY = """
                 DELETE FROM film_director
@@ -171,50 +165,50 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             """;
 
     private static final String GET_DIRECTOR_FILMS_BY_YEAR = """
-                    SELECT
-                    f.id,
-                    f.name,
-                    f.description,
-                    f.release_date,
-                    f.duration,
-                    f.rating_id
-                    FROM films f
-                    JOIN film_director fd ON fd.film_id = f.id
-                    WHERE fd.director_id = :directorId
-                    ORDER BY f.release_date ASC
-                    """;
+            SELECT
+            f.id,
+            f.name,
+            f.description,
+            f.release_date,
+            f.duration,
+            f.rating_id
+            FROM films f
+            JOIN film_director fd ON fd.film_id = f.id
+            WHERE fd.director_id = :directorId
+            ORDER BY f.release_date ASC
+            """;
 
     private static final String GET_DIRECTOR_FILMS_BY_LIKES = """
-                    SELECT
-                    f.id,
-                    f.name,
-                    f.description,
-                    f.release_date,
-                    f.duration,
-                    f.rating_id,
-                    COUNT(fl.film_id) AS likes_count,
-                    FROM films f
-                    JOIN film_director fd ON fd.film_id = f.id
-                    LEFT JOIN film_likes fl ON fl.film_id = f.id
-                    WHERE fd.director_id = :directorId
-                    GROUP BY f.id,
-                    f.name,
-                    f.description,
-                    f.release_date,
-                    f.duration,
-                    f.rating_id
-                    ORDER BY likes_count DESC
-                    """;
+            SELECT
+            f.id,
+            f.name,
+            f.description,
+            f.release_date,
+            f.duration,
+            f.rating_id,
+            COUNT(fl.film_id) AS likes_count,
+            FROM films f
+            JOIN film_director fd ON fd.film_id = f.id
+            LEFT JOIN film_likes fl ON fl.film_id = f.id
+            WHERE fd.director_id = :directorId
+            GROUP BY f.id,
+            f.name,
+            f.description,
+            f.release_date,
+            f.duration,
+            f.rating_id
+            ORDER BY likes_count DESC
+            """;
 
     @SuppressWarnings("unused")
     private static final String SELECT_FILM_DIRECTORS_BY_ID = """
-                    SELECT
-                    fd.director_id
-                    d.name as director_name
-                    FROM film_director fd
-                    JOIN directors d ON fd.director_id = d.id
-                    WHERE film_id = :filmId
-                    """;
+            SELECT
+            fd.director_id
+            d.name as director_name
+            FROM film_director fd
+            JOIN directors d ON fd.director_id = d.id
+            WHERE film_id = :filmId
+            """;
 
     public FilmDbStorage(
             NamedParameterJdbcTemplate jdbc,
@@ -319,7 +313,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
-    public Film createFilm(Film film) {
+    public void createFilm(Film film) {
         Map<String, Object> params = Map.of(
                 "name", film.getName(),
                 "description", film.getDescription(),
@@ -333,8 +327,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
         updateFilmGenres(film, filmId, false);
         likeStorage.updateFilmLikes(film, false);
-        updateFilmDirectors(film, filmId, false);
-        return film;
     }
 
     /**
@@ -358,25 +350,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
             // Выполняем batch-вставку
             jdbc.batchUpdate(INSERT_GENRE_QUERY, batch);
-        }
-    }
-
-    private void updateFilmDirectors(Film film, long filmId, Boolean reset) {
-        if (reset) {
-
-            // 1. Удаляем всех существующих режиссеров для данного фильма
-            update(DELETE_DIRECTOR_QUERY, Map.of("filmId", filmId), false);
-        }   // 2. Если режиссеры указаны — добавляем их в БД
-        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
-            // Формируем массив параметров для каждого режиссера
-            SqlParameterSource[] batch = film.getDirectors().stream()
-                    .map(director -> new MapSqlParameterSource()
-                            .addValue("filmId", filmId)
-                            .addValue("director_id", director.getId()))
-                    .toArray(SqlParameterSource[]::new);
-
-            // Выполняем batch-вставку
-            jdbc.batchUpdate(INSERT_DIRECTOR_QUERY, batch);
         }
     }
 
@@ -406,7 +379,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
-    public Film updateFilm(Film newFilm) {
+    public void updateFilm(Film newFilm) {
         long filmId = newFilm.getId();
 
         // 1. Обновляем основную запись фильма (без жанров и лайков)
@@ -425,11 +398,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
         // 3. Перезаписываем лайки: сначала удаляем старые, затем добавляем новые
         likeStorage.updateFilmLikes(newFilm, true);
-
-        // 4. Перезаписываем режиссеров
-        updateFilmDirectors(newFilm, filmId, true);
-
-        return newFilm;
     }
 
     @Override
