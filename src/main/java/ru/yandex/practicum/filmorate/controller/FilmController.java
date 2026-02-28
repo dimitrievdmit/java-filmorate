@@ -17,7 +17,6 @@ import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
-import java.util.List;
 
 @SuppressWarnings("unused")
 @RestController
@@ -84,11 +83,11 @@ public class FilmController {
 
     @GetMapping("/director/{directorId}")
     public Collection<FilmSendDTO> getSortedDirectorFilms(@PathVariable
-                                                    @Min(value = 1L, message = "Параметр должен быть > 0")
-                                                    int directorId,
-                                                    @RequestParam()
-                                                    @Pattern(regexp = "year|likes", message = "атрибут sortBy задан не верно")
-                                                    String sortBy) {
+                                                          @Min(value = 1L, message = "Параметр должен быть > 0")
+                                                          int directorId,
+                                                          @RequestParam()
+                                                          @Pattern(regexp = "year|likes", message = "атрибут sortBy задан не верно")
+                                                          String sortBy) {
         return filmService.getSortedDirectorFilms(directorId, sortBy).stream()
                 .map(FilmMapper::mapToSendDTO)
                 .toList();

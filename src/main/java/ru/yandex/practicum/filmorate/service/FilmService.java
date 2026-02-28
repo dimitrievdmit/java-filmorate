@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.DirectorStorage;
 import ru.yandex.practicum.filmorate.dal.FilmStorage;
 import ru.yandex.practicum.filmorate.dal.LikeStorage;
-import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.enums.EventOperation;
 import ru.yandex.practicum.filmorate.enums.EventType;
 import ru.yandex.practicum.filmorate.enums.FilmSearchType;
@@ -70,8 +69,8 @@ public class FilmService {
     public Film createFilm(Film film) {
 
         Set<Long> directorIds = film.getDirectors().stream()
-                        .map(Director::getId)
-                                .collect(Collectors.toSet());
+                .map(Director::getId)
+                .collect(Collectors.toSet());
 
         filmStorage.createFilm(film);
         directorStorage.updateDirectorsForFilm(directorIds, film.getId(), false);
@@ -129,7 +128,7 @@ public class FilmService {
 
     public Collection<Film> getPopularFilms(Long count, Integer genreId, Integer year) {
         log.info("Получение первых {} фильмов по количеству лайков с фильтрами genreId={}, year={}", count, genreId, year);
-         Collection<Film> films = filmStorage.getPopularFilms(count, genreId, year);
+        Collection<Film> films = filmStorage.getPopularFilms(count, genreId, year);
         return addDirectorsToFilms(films);
     }
 
@@ -142,7 +141,7 @@ public class FilmService {
 
         Collection<Film> films = filmStorage.getCommonFilms(userId, friendId);
         return addDirectorsToFilms(films);
-}
+    }
 
     public Collection<Film> getFilmsByTitleAndDirectorName(String query, FilmSearchType filmSearchType) {
         log.info("Поиск фильмов по названию и/или режиссёру с query={} и filmSearchType={}", query, filmSearchType);
@@ -175,7 +174,7 @@ public class FilmService {
         return addDirectorsToFilms(films);
     }
 
-    private List<Film> addDirectorsToFilms(Collection<Film> films){
+    private List<Film> addDirectorsToFilms(Collection<Film> films) {
         List<Long> filmIds = films.stream()
                 .map(Film::getId)
                 .toList();

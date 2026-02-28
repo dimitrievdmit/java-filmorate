@@ -1,19 +1,15 @@
 package ru.yandex.practicum.filmorate.dal;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.filmorate.dal.mappers.DirectorRowMapper;
-import ru.yandex.practicum.filmorate.dal.mappers.FilmDirectorRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmGenreRowMapper;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
 import ru.yandex.practicum.filmorate.enums.FilmSearchType;
-import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.sql.Timestamp;
@@ -26,7 +22,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     private final LikeStorage likeStorage;
     private final FilmGenreRowMapper filmGenreRowMapper;
-    private final FilmDirectorRowMapper filmDirectorRowMapper;
 
     private static final String SELECT_ALL_FILMS_QUERY = """
                 SELECT
