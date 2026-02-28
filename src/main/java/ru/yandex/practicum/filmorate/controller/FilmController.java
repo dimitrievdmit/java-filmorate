@@ -83,7 +83,7 @@ public class FilmController {
     }
 
     @GetMapping("/director/{directorId}")
-    public List<FilmSendDTO> getSortedDirectorFilms(@PathVariable
+    public Collection<FilmSendDTO> getSortedDirectorFilms(@PathVariable
                                                     @Min(value = 1L, message = "Параметр должен быть > 0")
                                                     int directorId,
                                                     @RequestParam()

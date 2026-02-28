@@ -43,7 +43,8 @@ public class FilmService {
     }
 
     public Collection<Film> getAllFilms() {
-        return filmStorage.getAllFilms();
+        Collection<Film> films = filmStorage.getAllFilms();
+        return addDirectorsToFilms(films);
     }
 
     public Collection<Film> getFilms(List<Long> filmIds) {
@@ -51,14 +52,19 @@ public class FilmService {
         if (films.isEmpty()) {
             throw new NotFoundException("Фильм с filmIds = " + filmIds + " не найдены");
         }
-        return films;
+        System.out.println(Arrays.toString(films.toArray()));
+        Collection<Film> fwd = addDirectorsToFilms(films);
+        System.out.println(Arrays.toString(fwd.toArray()));
+        return fwd;
     }
 
     public Film getFilm(Long id) {
         log.info("Получение фильма по id {}", id);
         Validator.validateId(id, "Id фильма должен быть указан");
         checkThatFilmExists(id);
-        return filmStorage.getFilm(id);
+        Film film = filmStorage.getFilm(id);
+        List<Film> f = List.of(film);
+        return addDirectorsToFilms(f).getFirst();
     }
 
     public Film createFilm(Film film) {
@@ -123,7 +129,8 @@ public class FilmService {
 
     public Collection<Film> getPopularFilms(Long count, Integer genreId, Integer year) {
         log.info("Получение первых {} фильмов по количеству лайков с фильтрами genreId={}, year={}", count, genreId, year);
-        return filmStorage.getPopularFilms(count, genreId, year);
+         Collection<Film> films = filmStorage.getPopularFilms(count, genreId, year);
+        return addDirectorsToFilms(films);
     }
 
     public Collection<Film> getCommonFilms(Long userId, Long friendId) {
@@ -148,14 +155,16 @@ public class FilmService {
         Collection<Film> films = filmStorage.getFilms(new ArrayList<>(userLikes));
 
         // Сортируем по популярности (кол-во лайков) по убыванию
-        return films.stream()
+        Collection<Film> fs = films.stream()
                 .sorted(Comparator.comparingInt((Film f) -> f.getLikes() == null ? 0 : f.getLikes().size()).reversed())
                 .toList();
+        return addDirectorsToFilms(fs);
     }
 
     public Collection<Film> getFilmsByTitleAndDirectorName(String query, FilmSearchType filmSearchType) {
         log.info("Поиск фильмов по названию и/или режиссёру с query={} и filmSearchType={}", query, filmSearchType);
-        return filmStorage.getFilmsByTitleAndDirectorName(query, filmSearchType);
+        Collection<Film> films = filmStorage.getFilmsByTitleAndDirectorName(query, filmSearchType);
+        return addDirectorsToFilms(films);
     }
 
     public void checkThatFilmExists(Long id) {
@@ -183,7 +192,7 @@ public class FilmService {
         return addDirectorsToFilms(films);
     }
 
-    private List<Film> addDirectorsToFilms(List<Film> films){
+    private List<Film> addDirectorsToFilms(Collection<Film> films){
         List<Long> filmIds = films.stream()
                 .map(Film::getId)
                 .toList();

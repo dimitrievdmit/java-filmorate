@@ -420,10 +420,9 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
         // 3. Получаем лайки для указанных фильмов
         Map<Long, Set<Long>> likesMap = likeStorage.getUserLikesByFilms(filmIds);
-        Map<Long, Set<Director>> directorMap = getFilmDirectors(filmIds);
         // 4. Создаём новые объекты Film с дополненными данными (не меняя исходные)
 
-        return enrichFilms(films, genresMap, likesMap, directorMap);
+        return enrichFilms(films, genresMap, likesMap, new HashMap<>());
     }
 
     private Map<Long, Set<FilmGenre>> getFilmGenres(List<Long> filmIds) {
@@ -436,32 +435,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 )
                 .stream()
                 // Группируем по film_id: для каждого фильма — набор жанров
-                .collect(Collectors.groupingBy(
-                        Map.Entry::getKey,
-                        Collectors.mapping(Map.Entry::getValue, Collectors.toSet())
-                ));
-    }
-
-    private static final String SELECT_DIRECTORS_QUERY_BY_FILM_ID = """
-                SELECT
-                    fd.film_id,
-                    fd.director_id,
-                    d.name as director_name
-                FROM film_director fd
-                JOIN directors d ON fd.director_id = d.id
-                WHERE fd.film_id IN (:filmIds)
-            """;
-
-    private Map<Long, Set<Director>> getFilmDirectors(List<Long> filmIds) {
-        // Получаем всех режиссеров для указанных фильмов
-        // Запрос возвращает пары (film_id, user_id)
-        return jdbc.query(
-                        SELECT_DIRECTORS_QUERY_BY_FILM_ID,
-                        Map.of("filmIds", filmIds),
-                        filmDirectorRowMapper
-                )
-                .stream()
-
                 .collect(Collectors.groupingBy(
                         Map.Entry::getKey,
                         Collectors.mapping(Map.Entry::getValue, Collectors.toSet())
