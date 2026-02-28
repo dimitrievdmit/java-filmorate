@@ -14,7 +14,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validator.Validator;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @SuppressWarnings({"unused"})
 @Service
@@ -67,25 +66,12 @@ public class FilmService {
     }
 
     public Film createFilm(Film film) {
-
-        Set<Long> directorIds = film.getDirectors().stream()
-                .map(Director::getId)
-                .collect(Collectors.toSet());
-
-        filmStorage.createFilm(film);
-        directorStorage.updateDirectorsForFilm(directorIds, film.getId(), false);
-        return film;
+        return filmStorage.createFilm(film);
     }
 
     public Film updateFilm(Film newFilm) {
         checkThatFilmExists(newFilm.getId());
-
-        Set<Long> directorIds = newFilm.getDirectors().stream()
-                .map(Director::getId)
-                .collect(Collectors.toSet());
-        directorStorage.updateDirectorsForFilm(directorIds, newFilm.getId(), true);
-        filmStorage.updateFilm(newFilm);
-        return newFilm;
+        return filmStorage.updateFilm(newFilm);
     }
 
     public void deleteFilm(Long id) {

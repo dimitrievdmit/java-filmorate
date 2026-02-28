@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmGenreRowMapper;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
 import ru.yandex.practicum.filmorate.enums.FilmSearchType;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.sql.Timestamp;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage {
 
     private final LikeStorage likeStorage;
+    private final DirectorStorage directorStorage;
     private final FilmGenreRowMapper filmGenreRowMapper;
 
     private static final String SELECT_ALL_FILMS_QUERY = """
@@ -235,11 +237,13 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             NamedParameterJdbcTemplate jdbc,
             RowMapper<Film> mapper,
             FilmGenreRowMapper filmGenreRowMapper,
-            LikeStorage likeStorage
+            LikeStorage likeStorage,
+            DirectorStorage directorStorage
     ) {
         super(jdbc, mapper);
         this.filmGenreRowMapper = filmGenreRowMapper;
         this.likeStorage = likeStorage;
+        this.directorStorage = directorStorage;
     }
 
     private Collection<Film> getManyFilmsWithAdditionalData(String query, Map<String, Object> params) {
@@ -341,6 +345,10 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
         updateFilmGenres(film, filmId, false);
         likeStorage.updateFilmLikes(film, false);
+        Set<Long> directorIds = film.getDirectors().stream()
+                .map(Director::getId)
+                .collect(Collectors.toSet());
+        directorStorage.updateDirectorsForFilm(directorIds, film.getId(), false);
         return film;
     }
 
@@ -413,6 +421,12 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
         // 3. Перезаписываем лайки: сначала удаляем старые, затем добавляем новые
         likeStorage.updateFilmLikes(newFilm, true);
+
+        // 4. Перезаписываем режиссёров: сначала удаляем старые, затем добавляем новые
+        Set<Long> directorIds = newFilm.getDirectors().stream()
+                .map(Director::getId)
+                .collect(Collectors.toSet());
+        directorStorage.updateDirectorsForFilm(directorIds, newFilm.getId(), true);
 
         return newFilm;
     }
