@@ -13,6 +13,6 @@ public final class FilmGenreMapper {
     }
 
     public static FilmGenreReceiveDTO mapDTOToReceiveDTO(FilmGenreSendDTO filmGenre) {
-        return new FilmGenreReceiveDTO(filmGenre.getId());
+        return new FilmGenreReceiveDTO(filmGenre.id());
     }
 }

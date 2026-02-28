@@ -8,9 +8,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.filmorate.dal.mappers.DirectorRowMapper;
+import ru.yandex.practicum.filmorate.dal.mappers.FilmDirectorRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmGenreRowMapper;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
 import ru.yandex.practicum.filmorate.enums.FilmSearchType;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.sql.Timestamp;
@@ -19,11 +22,11 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
-@Profile("db")  // аннотация @Qualifier в сервисах мешала настроить тесты сразу на обе реализации
 public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage {
 
     private final LikeStorage likeStorage;
     private final FilmGenreRowMapper filmGenreRowMapper;
+    private final FilmDirectorRowMapper filmDirectorRowMapper;
 
     private static final String SELECT_ALL_FILMS_QUERY = """
                 SELECT
@@ -188,6 +191,51 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             WHERE film_id = :filmId
             """;
 
+    private static final String SELECT_COMMON_FILMS_WITH_POPULARITY = """
+            SELECT
+            f.id,
+            f.name,
+            f.description,
+            f.release_date,
+            f.duration,
+            f.rating_id
+            FROM films f
+            JOIN film_likes fl1 ON f.id = fl1.film_id AND fl1.user_id = :userId
+            JOIN film_likes fl2 ON f.id = fl2.film_id AND fl2.user_id = :friendId
+            LEFT JOIN film_likes fl ON f.id = fl.film_id
+            GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.rating_id
+            ORDER BY COUNT(fl.user_id) DESC
+            """;
+
+    private static final String SELECT_RECOMMENDED_FILMS = """
+            SELECT
+                film.id,
+                film.name,
+                film.description,
+                film.release_date,
+                film.duration,
+                film.rating_id
+            FROM (
+                SELECT
+                    recommended_film.film_id,
+                    COUNT(DISTINCT similar_user.user_id) AS similarity_based_popularity
+                FROM film_likes target_user_likes
+                JOIN film_likes similar_user ON target_user_likes.film_id = similar_user.film_id
+                JOIN film_likes recommended_film ON similar_user.user_id = recommended_film.user_id
+                LEFT JOIN film_likes already_liked_by_target ON recommended_film.film_id = already_liked_by_target.film_id
+                    AND already_liked_by_target.user_id = :targetUser
+                WHERE
+                    target_user_likes.user_id = :targetUser
+                    AND similar_user.user_id != :targetUser
+                    AND already_liked_by_target.film_id IS NULL
+                GROUP BY recommended_film.film_id
+            ) AS film_recommendation_metrics
+            JOIN films film ON film_recommendation_metrics.film_id = film.id
+            ORDER BY film_recommendation_metrics.similarity_based_popularity DESC, film.id
+            LIMIT :count
+            """;
+
+    @SuppressWarnings("unused")
     public FilmDbStorage(
             NamedParameterJdbcTemplate jdbc,
             RowMapper<Film> mapper,
@@ -284,7 +332,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
-    public void createFilm(Film film) {
+    public Film createFilm(Film film) {
         Map<String, Object> params = Map.of(
                 "name", film.getName(),
                 "description", film.getDescription(),
@@ -298,6 +346,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
         updateFilmGenres(film, filmId, false);
         likeStorage.updateFilmLikes(film, false);
+        return film;
     }
 
     /**
@@ -350,7 +399,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
-    public void updateFilm(Film newFilm) {
+    public Film updateFilm(Film newFilm) {
         long filmId = newFilm.getId();
 
         // 1. Обновляем основную запись фильма (без жанров и лайков)
@@ -369,6 +418,8 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
         // 3. Перезаписываем лайки: сначала удаляем старые, затем добавляем новые
         likeStorage.updateFilmLikes(newFilm, true);
+
+        return newFilm;
     }
 
     @Override
@@ -384,6 +435,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         }
 
         List<Film> films = jdbc.query(query, params, mapper);
+
         List<Long> filmIds = films.stream()
                 .map(Film::getId)
                 .toList();
@@ -457,5 +509,24 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                     return newFilm;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<Film> getCommonFilms(Long userId, Long friendId) {
+        Map<String, Object> params = Map.of("userId", userId, "friendId", friendId);
+        List<Film> films = findMany(SELECT_COMMON_FILMS_WITH_POPULARITY, params);
+        if (films == null || films.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return getFilmAdditionalData(films);
+    }
+
+    @Override
+    public Collection<Film> getRecommendedFilms(Long userId, Long count) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("targetUser", userId);
+        params.put("count", count);
+
+        return getManyFilmsWithAdditionalData(SELECT_RECOMMENDED_FILMS, params);
     }
 }

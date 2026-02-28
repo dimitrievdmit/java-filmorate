@@ -9,7 +9,7 @@ import java.util.List;
 public interface FilmStorage {
     Collection<Film> getAllFilms();
 
-    void createFilm(Film film);
+    Film createFilm(Film film);
 
     Film getFilm(Long id);
 
@@ -19,7 +19,7 @@ public interface FilmStorage {
 
     Film removeGenre(Long id, Integer genreId);
 
-    void updateFilm(Film newFilm);
+    Film updateFilm(Film newFilm);
 
     void deleteFilm(Long id);
 
@@ -27,7 +27,11 @@ public interface FilmStorage {
 
     Collection<Film> getFilmsByTitleAndDirectorName(String query, FilmSearchType filmSearchType);
 
+    Collection<Film> getRecommendedFilms(Long userId, Long count);
+
     boolean checkIfFilmNotExists(Long id);
 
     List<Film> getSortedFilmsByDirectorId(long directorId, String sortBy);
+
+    Collection<Film> getCommonFilms(Long userId, Long friendId);
 }

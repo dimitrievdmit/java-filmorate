@@ -2,8 +2,7 @@ package ru.yandex.practicum.filmorate.dal;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
-import org.springframework.dao.EmptyResultDataAccessException;
+
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -15,9 +14,9 @@ import ru.yandex.practicum.filmorate.model.Film;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 @Slf4j
 @Repository
-@Profile("db")  // аннотация @Qualifier в сервисах мешала настроить тесты сразу на обе реализации
 public class LikeDbStorage extends BaseDBRepository<Film> implements LikeStorage {
 
     private final FilmLikeRowMapper filmLikeRowMapper;
@@ -121,13 +120,14 @@ public class LikeDbStorage extends BaseDBRepository<Film> implements LikeStorage
                 "filmId", film.getId(),
                 "userId", userId
         );
-        try {
-            Map.Entry<Long, Long> result = jdbc.queryForObject(SELECT_SINGLE_LIKE_QUERY, params, filmLikeRowMapper);
-            return Optional.ofNullable(result).isPresent();
-        } catch (EmptyResultDataAccessException ignored) {
-            return false;
-        }
+        List<Map.Entry<Long, Long>> results = jdbc.query(
+                SELECT_SINGLE_LIKE_QUERY,
+                params,
+                filmLikeRowMapper
+        );
+        return !results.isEmpty();
     }
+
 
     @Override
     public Map<Long, Set<Long>> getUserLikesByFilms(List<Long> filmIds) {
@@ -143,23 +143,6 @@ public class LikeDbStorage extends BaseDBRepository<Film> implements LikeStorage
                 .collect(Collectors.groupingBy(
                         Map.Entry::getKey,
                         Collectors.mapping(Map.Entry::getValue, Collectors.toSet())
-                ));
-    }
-
-    @Override
-    public Map<Long, Set<Long>> getFilmLikesByUsers(List<Long> userIds) {
-        // Получаем все лайки (ид фильмов) для указанных пользователей
-        // Запрос возвращает пары (film_id, user_id)
-        return jdbc.query(
-                        SELECT_LIKES_BY_USERS_QUERY,
-                        Map.of("userIds", userIds),
-                        filmLikeRowMapper
-                )
-                .stream()
-                // Группируем по user_id: для каждого пользователя — набор ID фильмов, которым поставили лайк
-                .collect(Collectors.groupingBy(
-                        Map.Entry::getValue,
-                        Collectors.mapping(Map.Entry::getKey, Collectors.toSet())
                 ));
     }
 

@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.mock.MockFilms;
 
+import java.util.Collection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,7 +29,7 @@ class RecommendationServiceTest {
         Long userId = userService.createUser(getValidUser()).getId();
 
         // Получаем рекомендации
-        List<Film> recommendations = recommendationService.getRecommendedFilms(userId, 10L);
+        Collection<Film> recommendations = recommendationService.getRecommendedFilms(userId, 10L);
 
         // Проверяем, что список пуст
         assertTrue(recommendations.isEmpty());
@@ -50,7 +51,7 @@ class RecommendationServiceTest {
         filmService.filmAddLike(film2.getId(), user2Id);
 
         // Получаем рекомендации для пользователя 1
-        List<Film> recommendations = recommendationService.getRecommendedFilms(user1Id, 10L);
+        List<Film> recommendations = (List<Film>) recommendationService.getRecommendedFilms(user1Id, 10L);
 
         // Проверяем, что список пуст (нет общих лайков)
         assertTrue(recommendations.isEmpty());
@@ -70,7 +71,7 @@ class RecommendationServiceTest {
         filmService.filmAddLike(film.getId(), user2Id);
 
         // Получаем рекомендации для пользователя 1
-        List<Film> recommendations = recommendationService.getRecommendedFilms(user1Id, 10L);
+        List<Film> recommendations = (List<Film>) recommendationService.getRecommendedFilms(user1Id, 10L);
 
         // Проверяем, что список пуст (одинаковые лайки, нет других фильмов)
         assertTrue(recommendations.isEmpty());
@@ -93,7 +94,7 @@ class RecommendationServiceTest {
         filmService.filmAddLike(film2.getId(), user2Id);
 
         // Получаем рекомендации для пользователя 2 (у которого больше лайков)
-        List<Film> recommendations = recommendationService.getRecommendedFilms(user2Id, 10L);
+        List<Film> recommendations = (List<Film>) recommendationService.getRecommendedFilms(user2Id, 10L);
 
         // Проверяем, что список пуст (пользователь 2 уже лайкнул все фильмы похожих пользователей)
         assertTrue(recommendations.isEmpty());
@@ -116,7 +117,7 @@ class RecommendationServiceTest {
         filmService.filmAddLike(film2.getId(), user2Id);
 
         // Получаем рекомендации для пользователя 1
-        List<Film> recommendations = recommendationService.getRecommendedFilms(user1Id, 10L);
+        List<Film> recommendations = (List<Film>) recommendationService.getRecommendedFilms(user1Id, 10L);
 
         // Проверяем, что список пуст (одинаковые лайки на два фильма)
         assertTrue(recommendations.isEmpty());
@@ -136,7 +137,7 @@ class RecommendationServiceTest {
         filmService.filmAddLike(film2.getId(), similarUserId); // дополнительный фильм
 
         // Запрашиваем 0 рекомендаций
-        List<Film> recommendations = recommendationService.getRecommendedFilms(userId, 0L);
+        List<Film> recommendations = (List<Film>) recommendationService.getRecommendedFilms(userId, 0L);
 
         // Проверяем, что возвращается пустой список
         assertTrue(recommendations.isEmpty(), "При count = 0 должен возвращаться пустой список");
@@ -162,7 +163,7 @@ class RecommendationServiceTest {
         filmService.filmAddLike(sharedFilm2.getId(), similarUserId);
 
         // Запрашиваем большое количество рекомендаций (100)
-        List<Film> recommendations = recommendationService.getRecommendedFilms(userId, 100L);
+        List<Film> recommendations = (List<Film>) recommendationService.getRecommendedFilms(userId, 100L);
 
         // Проверяем, что даже при большом count возвращается пустой список,
         // если нет доступных рекомендаций
@@ -193,7 +194,7 @@ class RecommendationServiceTest {
         filmService.filmAddLike(film2.getId(), user2Id);
 
         // Получаем рекомендации для пользователя 1
-        List<Film> recommendations = recommendationService.getRecommendedFilms(user1Id, 10L);
+        List<Film> recommendations = (List<Film>) recommendationService.getRecommendedFilms(user1Id, 10L);
 
         // Проверяем результаты
         assertEquals(1, recommendations.size());
@@ -238,7 +239,7 @@ class RecommendationServiceTest {
         filmService.filmAddLike(film3.getId(), user3Id);
 
         // Получаем топ‑2 рекомендации для пользователя 1
-        List<Film> recommendations = recommendationService.getRecommendedFilms(user1Id, 2L);
+        List<Film> recommendations = (List<Film>) recommendationService.getRecommendedFilms(user1Id, 2L);
 
         // Проверяем результаты
         assertEquals(2, recommendations.size(), "Должно быть возвращено ровно 2 рекомендации");
@@ -306,7 +307,7 @@ class RecommendationServiceTest {
         filmService.filmAddLike(uniqueToUser3.getId(), similarUser3Id);
 
         // Получаем рекомендации (топ‑3) для целевого пользователя
-        List<Film> recommendations = recommendationService.getRecommendedFilms(targetUserId, 3L);
+        List<Film> recommendations = (List<Film>) recommendationService.getRecommendedFilms(targetUserId, 3L);
 
         // Проверяем результаты
         assertEquals(3, recommendations.size(), "Должно быть возвращено 3 рекомендации");
@@ -351,7 +352,7 @@ class RecommendationServiceTest {
         filmService.filmAddLike(uniqueFilm.getId(), anotherSimilarUserId);
 
         // Запрашиваем 10 рекомендаций, хотя доступна только 1 уникальная
-        List<Film> recommendations = recommendationService.getRecommendedFilms(userId, 10L);
+        List<Film> recommendations = (List<Film>) recommendationService.getRecommendedFilms(userId, 10L);
 
         // Проверяем результаты
         assertEquals(1, recommendations.size(),
@@ -397,14 +398,14 @@ class RecommendationServiceTest {
         filmService.filmAddLike(recommendedFilm2.getId(), similarUser2Id);
 
         // Запрашиваем отрицательное количество рекомендаций
-        List<Film> recommendations = recommendationService.getRecommendedFilms(userId, -5L);
+        List<Film> recommendations = (List<Film>) recommendationService.getRecommendedFilms(userId, -5L);
 
         // Проверяем поведение сервиса при отрицательном count
         assertTrue(recommendations.isEmpty(),
                 "При отрицательном count должен возвращаться пустой список — это безопасная обработка некорректного ввода");
 
         // Дополнительная проверка: убеждаемся, что сервис корректно обрабатывает другие отрицательные значения
-        List<Film> recommendations2 = recommendationService.getRecommendedFilms(userId, -100L);
+        List<Film> recommendations2 = (List<Film>) recommendationService.getRecommendedFilms(userId, -100L);
         assertTrue(recommendations2.isEmpty(),
                 "Сервис должен возвращать пустой список для любого отрицательного значения count");
     }
@@ -446,7 +447,7 @@ class RecommendationServiceTest {
         filmService.filmAddLike(lessPopularFilm.getId(), user2Id);
 
         // Запрашиваем только 1 рекомендацию
-        List<Film> recommendations = recommendationService.getRecommendedFilms(targetUserId, 1L);
+        List<Film> recommendations = (List<Film>) recommendationService.getRecommendedFilms(targetUserId, 1L);
 
         // Проверяем, что ограничение count работает корректно
         assertEquals(1, recommendations.size(),
@@ -458,7 +459,7 @@ class RecommendationServiceTest {
                 "Название рекомендованного фильма должно соответствовать созданному");
 
         // Тестируем с count = 2, чтобы убедиться, что порядок рекомендаций правильный
-        List<Film> twoRecommendations = recommendationService.getRecommendedFilms(targetUserId, 2L);
+        List<Film> twoRecommendations = (List<Film>) recommendationService.getRecommendedFilms(targetUserId, 2L);
 
         assertEquals(2, twoRecommendations.size(),
                 "При запросе 2 рекомендаций должно быть возвращено 2 фильма");

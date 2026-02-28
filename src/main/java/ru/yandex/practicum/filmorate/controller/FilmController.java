@@ -39,13 +39,13 @@ public class FilmController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public FilmSendDTO createFilm(@Valid @RequestBody FilmReceiveDTO film) {
-        log.info("запрос создать фильм {}", film.getName());
+        log.info("запрос создать фильм {}", film.name());
         return FilmMapper.mapToSendDTO(filmService.createFilm(FilmMapper.mapToDomain(film)));
     }
 
     @PutMapping
     public FilmSendDTO updateFilm(@Valid @RequestBody FilmReceiveDTO newFilm) {
-        log.info("запрос обновить фильм id:{} ", newFilm.getId());
+        log.info("запрос обновить фильм id:{} ", newFilm.id());
         return FilmMapper.mapToSendDTO(filmService.updateFilm(FilmMapper.mapToDomain(newFilm)));
     }
 
@@ -125,8 +125,8 @@ public class FilmController {
 
     @GetMapping("/search")
     public Collection<FilmSendDTO> getFilmsByTitleAndDirectorName(@ModelAttribute @Valid SearchRequest searchRequest) {
-        FilmSearchType filmSearchType = FilmSearchType.fromValue(searchRequest.getBy());
-        return filmService.getFilmsByTitleAndDirectorName(searchRequest.getQuery(), filmSearchType)
+        FilmSearchType filmSearchType = FilmSearchType.fromValue(searchRequest.by());
+        return filmService.getFilmsByTitleAndDirectorName(searchRequest.query(), filmSearchType)
                 .stream()
                 .map(FilmMapper::mapToSendDTO)
                 .toList();

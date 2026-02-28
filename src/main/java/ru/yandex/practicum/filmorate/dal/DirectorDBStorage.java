@@ -15,6 +15,7 @@ import java.sql.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 @Slf4j
 @Repository
 public class DirectorDBStorage extends BaseDBRepository<Director> implements DirectorStorage {

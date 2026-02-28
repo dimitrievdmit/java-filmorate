@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.service.FeedServiceTest;
+package ru.yandex.practicum.filmorate.service.feedServiceTest;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;

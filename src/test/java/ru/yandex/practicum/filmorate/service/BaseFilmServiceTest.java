@@ -550,7 +550,7 @@ public abstract class BaseFilmServiceTest {
         assertEquals(FilmGenre.COMEDY, filmsList.getFirst().getGenres().iterator().next());
         assertEquals(1, filmsList.getFirst().getDirectors().size());
         Long actualId = filmsList.getFirst().getDirectors().stream().findAny().orElseThrow().getId();
-        assertEquals(actualId, director3.getId());
+        assertEquals(actualId, director3.id());
     }
 
     @Test

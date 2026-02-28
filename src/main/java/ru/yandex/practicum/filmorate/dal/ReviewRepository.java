@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.dal;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.context.annotation.Profile;
+
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Review;
 
@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@SuppressWarnings("unused")
 @Repository
-@Profile("db")
 public class ReviewRepository extends BaseDBRepository<Review> {
 
     private static final String INSERT_QUERY =

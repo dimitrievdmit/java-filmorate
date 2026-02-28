@@ -13,6 +13,8 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = NoNullElementsValidator.class)
 public @interface NoNullElements {
     String message() default "Коллекция не должна содержать null-элементы";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }

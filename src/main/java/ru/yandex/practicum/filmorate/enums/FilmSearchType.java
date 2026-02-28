@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.enums;
 
+@SuppressWarnings("unused")
 public enum FilmSearchType {
     TITLE, DIRECTOR, TITLE_AND_DIRECTOR;
 

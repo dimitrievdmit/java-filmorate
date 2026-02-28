@@ -52,16 +52,16 @@ public final class UserMapper {
      * Добавить пустую таблицу с друзьями.
      */
     public static User mapReceiveToDomain(UserReceiveDTO userDTO) {
-        String name = userDTO.getName();
+        String name = userDTO.name();
         if (name == null || name.trim().isEmpty()) {
-            name = userDTO.getLogin();
+            name = userDTO.login();
         }
         return new User(
-                userDTO.getId(),
-                userDTO.getEmail(),
-                userDTO.getLogin(),
+                userDTO.id(),
+                userDTO.email(),
+                userDTO.login(),
                 name,
-                userDTO.getBirthday(),
+                userDTO.birthday(),
                 new HashMap<>()
         );
     }
@@ -72,15 +72,15 @@ public final class UserMapper {
      */
     public static User mapSendToDomain(UserSendDTO userDTO) {
         // Преобразуем друзей
-        Map<Long, FriendshipStatus> friends = userDTO.getFriends() != null
-                ? new HashMap<>(userDTO.getFriends())
+        Map<Long, FriendshipStatus> friends = userDTO.friends() != null
+                ? new HashMap<>(userDTO.friends())
                 : new HashMap<>();
         return new User(
-                userDTO.getId(),
-                userDTO.getEmail(),
-                userDTO.getLogin(),
-                userDTO.getName(),
-                userDTO.getBirthday(),
+                userDTO.id(),
+                userDTO.email(),
+                userDTO.login(),
+                userDTO.name(),
+                userDTO.birthday(),
                 friends
         );
     }

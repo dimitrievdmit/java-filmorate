@@ -10,8 +10,6 @@ public interface LikeStorage {
 
     Map<Long, Set<Long>> getUserLikesByFilms(List<Long> filmIds);
 
-    Map<Long, Set<Long>> getFilmLikesByUsers(List<Long> userIds);
-
     void updateFilmLikes(Film film, Boolean reset);
 
     Film filmAddLike(Film film, Long userId);

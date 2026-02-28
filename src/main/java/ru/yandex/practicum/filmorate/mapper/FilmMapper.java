@@ -26,7 +26,7 @@ public final class FilmMapper {
                 ? film.getGenres().stream()
                 .filter(Objects::nonNull)  // Фильтруем null-элементы
                 .map(FilmGenreMapper::mapToDTO)
-                .sorted(Comparator.comparing(FilmGenreSendDTO::getId))  // сортировка для одинакового ответа
+                .sorted(Comparator.comparing(FilmGenreSendDTO::id))  // сортировка для одинакового ответа
                 .collect(Collectors.toList())
                 : null;
 
@@ -45,7 +45,7 @@ public final class FilmMapper {
                 ? film.getDirectors().stream()
                 .filter(Objects::nonNull)  // Фильтруем null-элементы
                 .map(DirectorMapper::mapToSendDTO)
-                .sorted(Comparator.comparing(DirectorSendDTO::getId))  // сортировка для одинакового ответа
+                .sorted(Comparator.comparing(DirectorSendDTO::id))  // сортировка для одинакового ответа
                 .toList()
                 : Collections.emptyList();
 
@@ -74,7 +74,7 @@ public final class FilmMapper {
                 ? film.getGenres().stream()
                 .filter(Objects::nonNull)  // Фильтруем null-элементы
                 .map(genre -> new FilmGenreReceiveDTO(genre.getId()))
-                .sorted(Comparator.comparing(FilmGenreReceiveDTO::getId))  // сортировка для одинакового ответа
+                .sorted(Comparator.comparing(FilmGenreReceiveDTO::id))  // сортировка для одинакового ответа
                 .collect(Collectors.toList())
                 : null;
 
@@ -93,7 +93,7 @@ public final class FilmMapper {
                 ? film.getDirectors().stream()
                 .filter(Objects::nonNull)  // Фильтруем null-элементы
                 .map(DirectorMapper::mapToFilmReceiveDTO)
-                .sorted(Comparator.comparing(FilmDirectorReceiveDTO::getId))  // сортировка для одинакового ответа
+                .sorted(Comparator.comparing(FilmDirectorReceiveDTO::id))  // сортировка для одинакового ответа
                 .toList()
                 : Collections.emptyList();
 
@@ -118,44 +118,44 @@ public final class FilmMapper {
      */
     public static Film mapToDomain(FilmReceiveDTO filmDTO) {
         // Проверка и преобразование жанров
-        Set<FilmGenre> genres = filmDTO.getGenres() != null
-                ? filmDTO.getGenres().stream()
+        Set<FilmGenre> genres = filmDTO.genres() != null
+                ? filmDTO.genres().stream()
                 .peek(genreDto -> {
                     if (genreDto == null) {
                         throw new IllegalArgumentException("Элемент жанра не может быть null");
                     }
-                    if (genreDto.getId() == null) {
+                    if (genreDto.id() == null) {
                         throw new IllegalArgumentException("ИД жанра не может быть null");
                     }
                 })
-                .map(genreDto -> FilmGenre.fromId(genreDto.getId()))
+                .map(genreDto -> FilmGenre.fromId(genreDto.id()))
                 .collect(Collectors.toSet())
                 : new HashSet<>();
 
-        if (filmDTO.getMpa().getId() == null) {
+        if (filmDTO.mpa().id() == null) {
             throw new IllegalArgumentException("ИД рейтинга не может быть null");
         }
-        FilmRating rating = FilmRating.fromId(filmDTO.getMpa().getId());
+        FilmRating rating = FilmRating.fromId(filmDTO.mpa().id());
 
         // Likes: null → пустое множество
-        Set<Long> likes = filmDTO.getLikes() != null
-                ? new HashSet<>(filmDTO.getLikes())
+        Set<Long> likes = filmDTO.likes() != null
+                ? new HashSet<>(filmDTO.likes())
                 : new HashSet<>();
 
         // Преобразуем режиссёров: FilmDirectorReceiveDTO → Director
-        Set<Director> directors = filmDTO.getDirectors() != null
-                ? filmDTO.getDirectors().stream()
+        Set<Director> directors = filmDTO.directors() != null
+                ? filmDTO.directors().stream()
                 .filter(Objects::nonNull)  // Фильтруем null-элементы
                 .map(DirectorMapper::mapFilmReceiveDTOToDomain)
                 .collect(Collectors.toSet())
                 : new HashSet<>();
 
         return new Film(
-                filmDTO.getId(),
-                filmDTO.getName(),
-                filmDTO.getDescription(),
-                filmDTO.getReleaseDate(),
-                filmDTO.getDuration(),
+                filmDTO.id(),
+                filmDTO.name(),
+                filmDTO.description(),
+                filmDTO.releaseDate(),
+                filmDTO.duration(),
                 genres,
                 rating,
                 likes,

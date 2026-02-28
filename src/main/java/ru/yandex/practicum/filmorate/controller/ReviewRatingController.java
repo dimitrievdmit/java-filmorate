@@ -2,13 +2,12 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.context.annotation.Profile;
+
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.service.ReviewRatingService;
 
 @SuppressWarnings("unused")
 @RestController
-@Profile("db")
 @RequestMapping("/reviews")
 @RequiredArgsConstructor
 public class ReviewRatingController {

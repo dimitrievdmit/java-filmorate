@@ -26,15 +26,15 @@ public class DirectorService {
     }
 
     public DirectorSendDTO updateDirector(DirectorUpdateDTO updateDTO) {
-        if (updateDTO.getId() == null)
+        if (updateDTO.id() == null)
             throw new IllegalArgumentException("при обновлении режиссера id = null");
 
-        checkThatDirectorExists(updateDTO.getId());
+        checkThatDirectorExists(updateDTO.id());
         Director director = DirectorMapper.mapUpdateDTOToDomain(updateDTO);
 
         directorStorage.updateDirector(director);
         DirectorSendDTO sendDTO = DirectorMapper.mapToSendDTO(director);
-        log.debug("обновлен режиссер id:{} name:{}", sendDTO.getId(), sendDTO.getName());
+        log.debug("обновлен режиссер id:{} name:{}", sendDTO.id(), sendDTO.name());
         return sendDTO;
     }
 
@@ -52,7 +52,7 @@ public class DirectorService {
     public List<DirectorSendDTO> getAllDirectors() {
         return directorStorage.getAllDirectors().stream()
                 .map(DirectorMapper::mapToSendDTO)
-                .sorted(Comparator.comparing(DirectorSendDTO::getId))
+                .sorted(Comparator.comparing(DirectorSendDTO::id))
                 .toList();
     }
 
