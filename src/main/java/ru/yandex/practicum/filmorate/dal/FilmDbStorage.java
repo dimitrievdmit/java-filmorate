@@ -8,12 +8,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.filmorate.dal.mappers.DirectorRowMapper;
-import ru.yandex.practicum.filmorate.dal.mappers.FilmDirectorRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmGenreRowMapper;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
 import ru.yandex.practicum.filmorate.enums.FilmSearchType;
-import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.sql.Timestamp;
@@ -27,7 +24,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     private final LikeStorage likeStorage;
     private final FilmGenreRowMapper filmGenreRowMapper;
-    private final FilmDirectorRowMapper filmDirectorRowMapper;
 
     private static final String SELECT_ALL_FILMS_QUERY = """
                 SELECT
@@ -196,13 +192,11 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             NamedParameterJdbcTemplate jdbc,
             RowMapper<Film> mapper,
             FilmGenreRowMapper filmGenreRowMapper,
-            LikeStorage likeStorage,
-            FilmDirectorRowMapper filmDirectorRowMapper
+            LikeStorage likeStorage
     ) {
         super(jdbc, mapper);
         this.filmGenreRowMapper = filmGenreRowMapper;
         this.likeStorage = likeStorage;
-        this.filmDirectorRowMapper = filmDirectorRowMapper;
     }
 
     private Collection<Film> getManyFilmsWithAdditionalData(String query, Map<String, Object> params) {
@@ -397,9 +391,8 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         Map<Long, Set<FilmGenre>> genresMap = this.getFilmGenres(filmIds);
         // Получаем лайки для фильмов
         Map<Long, Set<Long>> likesMap = likeStorage.getUserLikesByFilms(filmIds);
-        // Получаем режиссёров для фильмов (как было)
 
-        return enrichFilms(films, genresMap, likesMap, new HashMap<>());
+        return enrichFilms(films, genresMap, likesMap);
     }
 
     @Override
@@ -422,7 +415,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         Map<Long, Set<Long>> likesMap = likeStorage.getUserLikesByFilms(filmIds);
         // 4. Создаём новые объекты Film с дополненными данными (не меняя исходные)
 
-        return enrichFilms(films, genresMap, likesMap, new HashMap<>());
+        return enrichFilms(films, genresMap, likesMap);
     }
 
     private Map<Long, Set<FilmGenre>> getFilmGenres(List<Long> filmIds) {
@@ -444,8 +437,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     private List<Film> enrichFilms(
             List<Film> films,
             Map<Long, Set<FilmGenre>> genresMap,
-            Map<Long, Set<Long>> likesMap,
-            Map<Long, Set<Director>> directorMap
+            Map<Long, Set<Long>> likesMap
     ) {
         return films.stream()
                 .map(film -> {
@@ -457,7 +449,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                     newFilm.setReleaseDate(film.getReleaseDate());
                     newFilm.setDuration(film.getDuration());
                     newFilm.setRating(film.getRating());
-                    newFilm.setDirectors(directorMap.getOrDefault(film.getId(), new HashSet<>()));
+                    newFilm.setDirectors(new HashSet<>());
 
                     // Добавляем дополнительные данные
                     newFilm.setGenres(genresMap.getOrDefault(film.getId(), new HashSet<>()));
