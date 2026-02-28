@@ -18,7 +18,6 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
 
-@SuppressWarnings("unused")
 @RestController
 @RequestMapping("/films")
 @Slf4j
