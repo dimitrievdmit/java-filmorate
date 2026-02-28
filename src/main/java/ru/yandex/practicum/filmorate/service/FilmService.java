@@ -180,10 +180,14 @@ public class FilmService {
 
         checkThatDirectorExists(directorId);
         List<Film> films = filmStorage.getSortedFilmsByDirectorId(directorId, sortBy);
-        List<Long> ids = films.stream()
+        return addDirectorsToFilms(films);
+    }
+
+    private List<Film> addDirectorsToFilms(List<Film> films){
+        List<Long> filmIds = films.stream()
                 .map(Film::getId)
                 .toList();
-        Map<Long, Set<Director>> directorsMap = directorStorage.getFilmDirectors(ids);
+        Map<Long, Set<Director>> directorsMap = directorStorage.getFilmDirectors(filmIds);
 
         return films.stream()
                 .peek(f -> f.setDirectors(directorsMap.getOrDefault(f.getId(), new HashSet<>())))
