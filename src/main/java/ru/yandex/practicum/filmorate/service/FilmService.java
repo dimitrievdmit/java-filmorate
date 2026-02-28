@@ -179,6 +179,14 @@ public class FilmService {
     public List<Film> getSortedDirectorFilms(long directorId, String sortBy) {
 
         checkThatDirectorExists(directorId);
-        return filmStorage.getDirectorFilms(directorId, sortBy);
+        List<Film> films = filmStorage.getSortedFilmsByDirectorId(directorId, sortBy);
+        List<Long> ids = films.stream()
+                .map(Film::getId)
+                .toList();
+        Map<Long, Set<Director>> directorsMap = directorStorage.getFilmDirectors(ids);
+
+        return films.stream()
+                .peek(f -> f.setDirectors(directorsMap.getOrDefault(f.getId(), new HashSet<>())))
+                .toList();
     }
 }

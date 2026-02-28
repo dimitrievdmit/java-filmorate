@@ -91,16 +91,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
             LIMIT :count
             """;
 
-    private static final String SELECT_DIRECTORS_QUERY = """
-                SELECT
-                    fd.film_id,
-                    fd.director_id,
-                    d.name as director_name
-                FROM film_director fd
-                JOIN directors d ON fd.director_id = d.id
-                WHERE fd.film_id IN (:filmIds)
-            """;
-
     private static final String SELECT_TOP_FILMS_BY_TITLE_AND_DIRECTOR_NAME_QUERY = """
                 SELECT
                     f.id,
@@ -389,7 +379,7 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
-    public List<Film> getDirectorFilms(long directorId, String sortBy) {
+    public List<Film> getSortedFilmsByDirectorId(long directorId, String sortBy) {
         MapSqlParameterSource params = new MapSqlParameterSource("directorId", directorId);
         String query;
 
@@ -408,9 +398,8 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
         // Получаем лайки для фильмов
         Map<Long, Set<Long>> likesMap = likeStorage.getUserLikesByFilms(filmIds);
         // Получаем режиссёров для фильмов (как было)
-        Map<Long, Set<Director>> directorsMap = this.getFilmDirectors(filmIds);
 
-        return enrichFilms(films, genresMap, likesMap, directorsMap);
+        return enrichFilms(films, genresMap, likesMap, new HashMap<>());
     }
 
     @Override
@@ -453,11 +442,21 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 ));
     }
 
+    private static final String SELECT_DIRECTORS_QUERY_BY_FILM_ID = """
+                SELECT
+                    fd.film_id,
+                    fd.director_id,
+                    d.name as director_name
+                FROM film_director fd
+                JOIN directors d ON fd.director_id = d.id
+                WHERE fd.film_id IN (:filmIds)
+            """;
+
     private Map<Long, Set<Director>> getFilmDirectors(List<Long> filmIds) {
         // Получаем всех режиссеров для указанных фильмов
         // Запрос возвращает пары (film_id, user_id)
         return jdbc.query(
-                        SELECT_DIRECTORS_QUERY,
+                        SELECT_DIRECTORS_QUERY_BY_FILM_ID,
                         Map.of("filmIds", filmIds),
                         filmDirectorRowMapper
                 )

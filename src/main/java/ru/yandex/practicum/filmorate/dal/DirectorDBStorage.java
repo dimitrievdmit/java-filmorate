@@ -7,18 +7,25 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.mappers.DirectorRowMapper;
+import ru.yandex.practicum.filmorate.dal.mappers.FilmDirectorRowMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.sql.Array;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
 public class DirectorDBStorage extends BaseDBRepository<Director> implements DirectorStorage {
 
-    public DirectorDBStorage(NamedParameterJdbcTemplate jdbc, RowMapper<Director> mapper) {
+    private final RowMapper<Map.Entry<Long, Director>> filmDirectorRowMapper;
+
+    public DirectorDBStorage(NamedParameterJdbcTemplate jdbc,
+                             RowMapper<Director> mapper,
+                             RowMapper<Map.Entry<Long, Director>> filmDirectorRowMapper) {
         super(jdbc, mapper);
+        this.filmDirectorRowMapper = filmDirectorRowMapper;
     }
 
     private static final String INSERT_DIRECTOR = "INSERT INTO directors (name) VALUES (:name)";
@@ -45,6 +52,17 @@ public class DirectorDBStorage extends BaseDBRepository<Director> implements Dir
                 FROM directors d
                 WHERE d.id = :id
             """;
+
+    private static final String SELECT_DIRECTORS_QUERY_BY_FILM_ID = """
+                SELECT
+                    fd.film_id,
+                    fd.director_id,
+                    d.name as director_name
+                FROM film_director fd
+                JOIN directors d ON fd.director_id = d.id
+                WHERE fd.film_id IN (:filmIds)
+            """;
+
 
     @Override
     public Director createDirector(Director director) {
@@ -111,5 +129,21 @@ public class DirectorDBStorage extends BaseDBRepository<Director> implements Dir
     @Override
     public boolean checkIfDirectorNotExists(Long id) {
         return jdbc.query(SELECT_ONE_DIRECTOR_QUERY, Map.of("id", id), new DirectorRowMapper()).isEmpty();
+    }
+
+    public Map<Long, Set<Director>> getFilmDirectors(List<Long> filmIds) {
+        // Получаем всех режиссеров для указанных фильмов
+        // Запрос возвращает пары (film_id, user_id)
+        return jdbc.query(
+                        SELECT_DIRECTORS_QUERY_BY_FILM_ID,
+                        Map.of("filmIds", filmIds),
+                        filmDirectorRowMapper
+                )
+                .stream()
+
+                .collect(Collectors.groupingBy(
+                        Map.Entry::getKey,
+                        Collectors.mapping(Map.Entry::getValue, Collectors.toSet())
+                ));
     }
 }

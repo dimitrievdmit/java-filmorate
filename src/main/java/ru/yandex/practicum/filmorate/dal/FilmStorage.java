@@ -29,5 +29,5 @@ public interface FilmStorage {
 
     boolean checkIfFilmNotExists(Long id);
 
-    List<Film> getDirectorFilms(long directorId, String sortBy);
+    List<Film> getSortedFilmsByDirectorId(long directorId, String sortBy);
 }
