@@ -19,4 +19,6 @@ public interface DirectorStorage {
     boolean checkIfNotExists(Long id);
 
     void updateDirectorsForFilm(Set<Long> directorIds, long filmId, Boolean reset);
+
+    boolean checkIfDirectorNotExists(Long id);
 }

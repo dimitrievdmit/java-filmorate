@@ -53,14 +53,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
                 WHERE f.id = :id
             """;
 
-    private static final String SELECT_ONE_DIRECTOR_QUERY = """
-                SELECT
-                    d.id,
-                    d.name
-                FROM directors d
-                WHERE d.id = :id
-            """;
-
     private static final String SELECT_MANY_FILMS_QUERY = """
                 SELECT
                     f.id,
@@ -280,11 +272,6 @@ public class FilmDbStorage extends BaseDBRepository<Film> implements FilmStorage
     @Override
     public boolean checkIfFilmNotExists(Long id) {
         return findOne(SELECT_ONE_FILM_QUERY, Map.of("id", id)).isEmpty();
-    }
-
-    @Override
-    public boolean checkIfDirectorNotExists(Long id) {
-        return jdbc.query(SELECT_ONE_DIRECTOR_QUERY, Map.of("id", id), new DirectorRowMapper()).isEmpty();
     }
 
     @Override

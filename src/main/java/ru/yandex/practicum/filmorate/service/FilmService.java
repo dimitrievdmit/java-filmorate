@@ -169,7 +169,7 @@ public class FilmService {
 
     public void checkThatDirectorExists(Long id) {
         log.info("Проверить, что режиссер существует.");
-        if (filmStorage.checkIfDirectorNotExists(id)) {
+        if (directorStorage.checkIfDirectorNotExists(id)) {
             String errText = "Режиссер с id = " + id + " не найден";
             log.error("Ошибка: {}", errText);
             throw new NotFoundException(errText);

@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dal.mappers.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -36,6 +37,14 @@ public class DirectorDBStorage extends BaseDBRepository<Director> implements Dir
             """;
 
     private static final String DELETE_DIRECTOR_QUERY = "DELETE FROM film_director WHERE film_id = :filmId";
+
+    private static final String SELECT_ONE_DIRECTOR_QUERY = """
+                SELECT
+                    d.id,
+                    d.name
+                FROM directors d
+                WHERE d.id = :id
+            """;
 
     @Override
     public Director createDirector(Director director) {
@@ -97,5 +106,10 @@ public class DirectorDBStorage extends BaseDBRepository<Director> implements Dir
             jdbc.batchUpdate(INSERT_DIRECTOR_QUERY, batch);
 
         }
+    }
+
+    @Override
+    public boolean checkIfDirectorNotExists(Long id) {
+        return jdbc.query(SELECT_ONE_DIRECTOR_QUERY, Map.of("id", id), new DirectorRowMapper()).isEmpty();
     }
 }
