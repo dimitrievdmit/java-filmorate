@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.validator.Validator;
 
 import java.util.Collection;
 
+@SuppressWarnings("unused")
 @Service
 @Slf4j
 public class GenreService {

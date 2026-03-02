@@ -3,24 +3,29 @@ package ru.yandex.practicum.filmorate.service;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.UserStorage;
+import ru.yandex.practicum.filmorate.enums.EventOperation;
+import ru.yandex.practicum.filmorate.enums.EventType;
 import ru.yandex.practicum.filmorate.enums.FriendshipStatus;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.dal.UserStorage;
 import ru.yandex.practicum.filmorate.validator.Validator;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+@SuppressWarnings({"unused"})
 @Service
 @Slf4j
 public class UserService {
 
     private final UserStorage userStorage;
+    private final FeedService feedService;
 
-    public UserService(UserStorage userStorage) {
+    public UserService(UserStorage userStorage, FeedService feedService) {
         this.userStorage = userStorage;
+        this.feedService = feedService;
     }
 
     public Collection<User> getAllUsers() {
@@ -28,6 +33,7 @@ public class UserService {
     }
 
     public User createUser(@Valid User user) {
+        Validator.fillNameWithLoginIfEmpty(user);
         return userStorage.createUser((user));
     }
 
@@ -71,16 +77,24 @@ public class UserService {
             return;
         }
 
+        boolean added = false;
+
         if (friend.getFriendshipStatus(id) == FriendshipStatus.UNCONFIRMED) {
             log.info("Пользователь {} уже находится в неподтверждённых друзьях пользователя {}", id, friendId);
             log.info("Подтверждение дружбы: пользователь {} ↔ друг {}", id, friendId);
             userStorage.userAddUnconfirmedFriend(id, friendId);
             userStorage.confirmFriendship(id, friendId);
+            added = true;
         }
 
         if (friend.getFriendshipStatus(id) == null) {
             log.info("Добавление неподтверждённой дружбы: пользователь {} → друг {}", id, friendId);
             userStorage.userAddUnconfirmedFriend(id, friendId);
+            added = true;
+        }
+
+        if (added) {
+            feedService.logEvent(id, EventType.FRIEND, EventOperation.ADD, friendId);
         }
     }
 
@@ -103,6 +117,8 @@ public class UserService {
             log.info("Добавление неподтверждённой дружбы: пользователь {} → друг {}", friendId, id);
             userStorage.userAddUnconfirmedFriend(friendId, id);
         }
+
+        feedService.logEvent(id, EventType.FRIEND, EventOperation.REMOVE, friendId);
     }
 
     public Collection<User> userGetFriends(Long id) {

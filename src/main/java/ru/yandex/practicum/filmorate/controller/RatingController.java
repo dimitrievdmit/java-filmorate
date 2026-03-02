@@ -28,7 +28,7 @@ public class RatingController {
         return ratingService.getAllRatings()
                 .stream()
                 .map(FilmRatingMapper::mapToDTO)
-                .sorted(Comparator.comparing(FilmRatingSendDTO::getId))
+                .sorted(Comparator.comparing(FilmRatingSendDTO::id))
                 .toList();
     }
 

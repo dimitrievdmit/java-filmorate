@@ -1,16 +1,19 @@
 package ru.yandex.practicum.filmorate.dal;
 
 
-import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.enums.FilmGenre;
-import java.util.*;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
 
 
+@SuppressWarnings("unused")
 @Repository
-@Profile("db")  // аннотация @Qualifier в сервисах мешала настроить тесты сразу на обе реализации
 public class GenreDbStorage extends BaseDBRepository<FilmGenre> implements GenreStorage {
 
     private static final String SELECT_ALL_GENRES_QUERY = """
@@ -18,6 +21,7 @@ public class GenreDbStorage extends BaseDBRepository<FilmGenre> implements Genre
                     g.id,
                     g.name
                 FROM genres g
+                ORDER BY g.id ASC
             """;
 
     private static final String SELECT_ONE_GENRE_QUERY = """

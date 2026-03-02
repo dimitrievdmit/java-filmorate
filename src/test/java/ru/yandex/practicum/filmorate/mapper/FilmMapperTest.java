@@ -25,19 +25,19 @@ class FilmMapperTest {
 
         FilmSendDTO dto = FilmMapper.mapToSendDTO(film);
 
-        assertEquals(1L, dto.getId());
-        assertEquals(MockFilms.VALID_NAME, dto.getName());
-        assertEquals(MockFilms.VALID_DESCRIPTION, dto.getDescription());
-        assertEquals(MockFilms.VALID_RELEASE_DATE, dto.getReleaseDate());
-        assertEquals(MockFilms.VALID_DURATION, dto.getDuration());
+        assertEquals(1L, dto.id());
+        assertEquals(MockFilms.VALID_NAME, dto.name());
+        assertEquals(MockFilms.VALID_DESCRIPTION, dto.description());
+        assertEquals(MockFilms.VALID_RELEASE_DATE, dto.releaseDate());
+        assertEquals(MockFilms.VALID_DURATION, dto.duration());
 
-        Set<Integer> genreIds = dto.getGenres().stream()
-                .map(FilmGenreSendDTO::getId)
+        Set<Integer> genreIds = dto.genres().stream()
+                .map(FilmGenreSendDTO::id)
                 .collect(Collectors.toSet());
         assertEquals(Set.of(FilmGenre.ACTION.getId(), FilmGenre.COMEDY.getId()), genreIds);
 
-        assertEquals(FilmRating.PG.getId(), dto.getMpa().getId());
-        assertTrue(dto.getLikes().isEmpty());  // В моке likes не заданы
+        assertEquals(FilmRating.PG.getId(), dto.mpa().id());
+        assertTrue(dto.likes().isEmpty());  // В моке likes не заданы
     }
 
     @Test
@@ -46,38 +46,23 @@ class FilmMapperTest {
 
         FilmReceiveDTO dto = FilmMapper.mapToReceiveDTO(film);
 
-        assertEquals(1L, dto.getId());
-        assertEquals(MockFilms.VALID_NAME, dto.getName());
-        assertEquals(MockFilms.VALID_DESCRIPTION, dto.getDescription());
-        assertEquals(MockFilms.VALID_RELEASE_DATE, dto.getReleaseDate());
-        assertEquals(MockFilms.VALID_DURATION, dto.getDuration());
+        assertEquals(1L, dto.id());
+        assertEquals(MockFilms.VALID_NAME, dto.name());
+        assertEquals(MockFilms.VALID_DESCRIPTION, dto.description());
+        assertEquals(MockFilms.VALID_RELEASE_DATE, dto.releaseDate());
+        assertEquals(MockFilms.VALID_DURATION, dto.duration());
 
-        Set<Integer> genreIds = dto.getGenres().stream()
-                .map(FilmGenreReceiveDTO::getId)
+        Set<Integer> genreIds = dto.genres().stream()
+                .map(FilmGenreReceiveDTO::id)
                 .collect(Collectors.toSet());
         assertEquals(Set.of(FilmGenre.ACTION.getId(), FilmGenre.COMEDY.getId()), genreIds);
-        assertEquals(FilmRating.PG.getId(), dto.getMpa().getId());
-        assertTrue(dto.getLikes().isEmpty());
+        assertEquals(FilmRating.PG.getId(), dto.mpa().id());
+        assertTrue(dto.likes().isEmpty());
     }
 
     @Test
     void mapToDomain_shouldConvertFilmReceiveDTOToFilmWithCorrectEnumValues() {
-        List<FilmGenreReceiveDTO> genreDtos = List.of(
-                new FilmGenreReceiveDTO(FilmGenre.THRILLER.getId()),
-                new FilmGenreReceiveDTO(FilmGenre.DOCUMENTARY.getId())
-        );
-        FilmRatingReceiveDTO mpaDto = new FilmRatingReceiveDTO(FilmRating.R.getId());
-
-        FilmReceiveDTO dto = new FilmReceiveDTO(
-                2L,
-                "The Matrix",
-                "A cyberpunk action film.",
-                LocalDate.of(1999, 3, 31),
-                136L,
-                genreDtos,
-                mpaDto,
-                List.of(201L, 202L)
-        );
+        FilmReceiveDTO dto = getFilmReceiveDTO();
 
         Film domain = FilmMapper.mapToDomain(dto);
 
@@ -94,6 +79,26 @@ class FilmMapperTest {
         assertEquals(Set.of(201L, 202L), domain.getLikes());
     }
 
+    private static FilmReceiveDTO getFilmReceiveDTO() {
+        List<FilmGenreReceiveDTO> genreDtos = List.of(
+                new FilmGenreReceiveDTO(FilmGenre.THRILLER.getId()),
+                new FilmGenreReceiveDTO(FilmGenre.DOCUMENTARY.getId())
+        );
+        FilmRatingReceiveDTO mpaDto = new FilmRatingReceiveDTO(FilmRating.R.getId());
+
+        return new FilmReceiveDTO(
+                2L,
+                "The Matrix",
+                "A cyberpunk action film.",
+                LocalDate.of(1999, 3, 31),
+                136L,
+                genreDtos,
+                mpaDto,
+                List.of(201L, 202L),
+                new ArrayList<>()
+        );
+    }
+
     @Test
     void mapToSendDTO_shouldHandleNullGenresAndRating() {
         Film film = new Film();
@@ -103,8 +108,8 @@ class FilmMapperTest {
         film.setRating(null);
 
         FilmSendDTO dto = FilmMapper.mapToSendDTO(film);
-        assertNull(dto.getGenres());
-        assertNull(dto.getMpa());
+        assertNull(dto.genres());
+        assertNull(dto.mpa());
     }
 
     @Test
@@ -115,8 +120,8 @@ class FilmMapperTest {
         film.setGenres(null);
         film.setRating(null);
         FilmReceiveDTO dto = FilmMapper.mapToReceiveDTO(film);
-        assertNull(dto.getGenres());
-        assertNull(dto.getMpa());
+        assertNull(dto.genres());
+        assertNull(dto.mpa());
     }
 
     @Test
@@ -128,7 +133,8 @@ class FilmMapperTest {
                 null, null, null,
                 genreDtos,
                 new FilmRatingReceiveDTO(1),
-                null
+                null,
+                new ArrayList<>()
         );
         assertThrows(IllegalArgumentException.class,
                 () -> FilmMapper.mapToDomain(dto),
@@ -146,9 +152,9 @@ class FilmMapperTest {
         film.setRating(FilmRating.G);
 
         FilmSendDTO dto = FilmMapper.mapToSendDTO(film);
-        assertTrue(dto.getGenres().isEmpty());
-        assertEquals(FilmRating.G.getId(), dto.getMpa().getId());
-        assertTrue(dto.getLikes().isEmpty());
+        assertTrue(dto.genres().isEmpty());
+        assertEquals(FilmRating.G.getId(), dto.mpa().id());
+        assertTrue(dto.likes().isEmpty());
     }
 
     @Test
@@ -161,9 +167,9 @@ class FilmMapperTest {
         film.setRating(FilmRating.G);
 
         FilmReceiveDTO dto = FilmMapper.mapToReceiveDTO(film);
-        assertTrue(dto.getGenres().isEmpty());
-        assertEquals(FilmRating.G.getId(), dto.getMpa().getId());
-        assertTrue(dto.getLikes().isEmpty());
+        assertTrue(dto.genres().isEmpty());
+        assertEquals(FilmRating.G.getId(), dto.mpa().id());
+        assertTrue(dto.likes().isEmpty());
     }
 
     @Test
@@ -176,7 +182,8 @@ class FilmMapperTest {
                 null,                   // duration = null
                 null,                   // genres = null
                 new FilmRatingReceiveDTO(FilmRating.PG.getId()),  // mpa = PG
-                null                    // likes = null
+                null,                    // likes = null
+                new ArrayList<>()
         );
 
         Film domain = FilmMapper.mapToDomain(dto);

@@ -33,16 +33,16 @@ class UserMapperTest {
         UserSendDTO dto = UserMapper.mapToSendDTO(user);
 
         // Проверяем базовые поля
-        assertEquals(1L, dto.getId());
-        assertEquals("test@mail.ru", dto.getEmail());
-        assertEquals("test_user", dto.getLogin());
-        assertEquals("Test User", dto.getName());
-        assertEquals(LocalDate.of(1990, 1, 1), dto.getBirthday());
+        assertEquals(1L, dto.id());
+        assertEquals("test@mail.ru", dto.email());
+        assertEquals("test_user", dto.login());
+        assertEquals("Test User", dto.name());
+        assertEquals(LocalDate.of(1990, 1, 1), dto.birthday());
 
         // Проверяем друзей
-        assertEquals(2, dto.getFriends().size());
-        assertEquals(FriendshipStatus.CONFIRMED, dto.getFriends().get(2L));
-        assertEquals(FriendshipStatus.UNCONFIRMED, dto.getFriends().get(3L));
+        assertEquals(2, dto.friends().size());
+        assertEquals(FriendshipStatus.CONFIRMED, dto.friends().get(2L));
+        assertEquals(FriendshipStatus.UNCONFIRMED, dto.friends().get(3L));
     }
 
     @Test
@@ -56,11 +56,11 @@ class UserMapperTest {
 
         UserReceiveDTO dto = UserMapper.mapToReceiveDTO(user);
 
-        assertEquals(1L, dto.getId());
-        assertEquals("test@mail.ru", dto.getEmail());
-        assertEquals("test_user", dto.getLogin());
-        assertEquals("Test User", dto.getName());
-        assertEquals(LocalDate.of(1990, 1, 1), dto.getBirthday());
+        assertEquals(1L, dto.id());
+        assertEquals("test@mail.ru", dto.email());
+        assertEquals("test_user", dto.login());
+        assertEquals("Test User", dto.name());
+        assertEquals(LocalDate.of(1990, 1, 1), dto.birthday());
     }
 
     @Test
@@ -153,7 +153,7 @@ class UserMapperTest {
         assertEquals(1L, user.getId());
         assertEquals("test@mail.ru", user.getEmail());
         assertEquals("test_user", user.getLogin());
-        assertNull(user.getName());
+        assertNotNull(user.getName());
         assertNull(user.getBirthday());
     }
 

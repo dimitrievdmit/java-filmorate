@@ -46,6 +46,9 @@ public class Film {
     @NoNullElements(message = "Лайки не могут содержать null-значения")
     private Set<Long> likes = new HashSet<>();
 
+    @NoNullElements(message = "Режисеры не могут содержать null-значений")
+    private Set<Director> directors = new HashSet<>();
+
     public void addGenre(FilmGenre genre) {
         log.info("Добавление жанра {} фильму {}", genre, this.id);
         genres.add(genre);

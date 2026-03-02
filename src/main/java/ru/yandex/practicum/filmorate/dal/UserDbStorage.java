@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.dal;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
+
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -15,9 +15,9 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 @Slf4j
 @Repository
-@Profile("db")  // аннотация @Qualifier в сервисах мешала настроить тесты сразу на обе реализации
 public class UserDbStorage extends BaseDBRepository<User> implements UserStorage {
 
     private final FriendshipRowMapper friendshipRowMapper;
@@ -276,7 +276,7 @@ public class UserDbStorage extends BaseDBRepository<User> implements UserStorage
                     friendshipRowMapper
             );
             return friendships.stream()
-                    .collect(Collectors.groupingBy(Friendship::getUserId));
+                    .collect(Collectors.groupingBy(Friendship::userId));
         } catch (Exception e) {
             log.error("Ошибка при выгрузке дружеских связей", e);
             throw new InternalServerException("Не удалось выгрузить дружеские связи", e);
@@ -296,7 +296,7 @@ public class UserDbStorage extends BaseDBRepository<User> implements UserStorage
 
 
                     List<Friendship> userFriends = friendships.getOrDefault(user.getId(), Collections.emptyList());
-                    userFriends.forEach(f -> enriched.addFriend(f.getFriendId(), f.getStatus()));
+                    userFriends.forEach(f -> enriched.addFriend(f.friendId(), f.status()));
 
                     return enriched;
                 })

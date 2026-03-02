@@ -1,14 +1,18 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
 import ru.yandex.practicum.filmorate.dto.FilmReceiveDTO;
+import ru.yandex.practicum.filmorate.dto.FilmSendDTO;
+import ru.yandex.practicum.filmorate.dto.search.SearchRequest;
+import ru.yandex.practicum.filmorate.enums.FilmSearchType;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
@@ -34,23 +38,27 @@ public class FilmController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public FilmSendDTO createFilm(@Valid @RequestBody FilmReceiveDTO film) {
+        log.info("запрос создать фильм {}", film.name());
         return FilmMapper.mapToSendDTO(filmService.createFilm(FilmMapper.mapToDomain(film)));
-    }
-
-    @GetMapping("/{id}")
-    public FilmSendDTO getFilm(@PathVariable Long id) {
-        return FilmMapper.mapToSendDTO((filmService.getFilm(id)));
     }
 
     @PutMapping
     public FilmSendDTO updateFilm(@Valid @RequestBody FilmReceiveDTO newFilm) {
+        log.info("запрос обновить фильм id:{} ", newFilm.id());
         return FilmMapper.mapToSendDTO(filmService.updateFilm(FilmMapper.mapToDomain(newFilm)));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFilm(@PathVariable Long id) {
+        log.info("запрос удалить фильм id:{}", id);
         filmService.deleteFilm(id);
+    }
+
+    @GetMapping("/{id}")
+    public FilmSendDTO getFilm(@PathVariable Long id) {
+        log.info("запрос получить фильм id:{}", id);
+        return FilmMapper.mapToSendDTO((filmService.getFilm(id)));
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -59,7 +67,6 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public FilmSendDTO filmDeleteLike(@PathVariable Long id, @PathVariable Long userId) {
         return FilmMapper.mapToSendDTO(filmService.filmDeleteLike(id, userId));
     }
@@ -70,18 +77,55 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/genre/{genreId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public FilmSendDTO filmDeleteGenre(@PathVariable Long id, @PathVariable Integer genreId) {
         return FilmMapper.mapToSendDTO(filmService.filmDeleteGenre(id, genreId));
     }
 
+    @GetMapping("/director/{directorId}")
+    public Collection<FilmSendDTO> getSortedDirectorFilms(@PathVariable
+                                                          @Min(value = 1L, message = "Параметр должен быть > 0")
+                                                          int directorId,
+                                                          @RequestParam()
+                                                          @Pattern(regexp = "year|likes", message = "атрибут sortBy задан не верно")
+                                                          String sortBy) {
+        return filmService.getSortedDirectorFilms(directorId, sortBy).stream()
+                .map(FilmMapper::mapToSendDTO)
+                .toList();
+    }
+
     @GetMapping("/popular")
     public Collection<FilmSendDTO> getPopularFilms(
-            @RequestParam(defaultValue = "10L")
+            @RequestParam(defaultValue = "10")
             @Positive(message = "Параметр должен быть положительным числом")
-            Long count
+            Long count,
+            @Positive(message = "Параметр genreId должен быть положительным числом")
+            @RequestParam(required = false) Integer genreId,
+            @Positive(message = "Параметр year должен быть положительным числом")
+            @RequestParam(required = false) Integer year
     ) {
-        return filmService.getPopularFilms(count)
+        return filmService.getPopularFilms(count, genreId, year)
+                .stream()
+                .map(FilmMapper::mapToSendDTO)
+                .toList();
+    }
+
+    @GetMapping("/common")
+    public Collection<FilmSendDTO> getCommonFilms(
+            @RequestParam
+            @Positive(message = "Id пользователя должен быть положительным") Long userId,
+            @RequestParam
+            @Positive(message = "Id друга должен быть положительным") Long friendId
+    ) {
+        return filmService.getCommonFilms(userId, friendId)
+                .stream()
+                .map(FilmMapper::mapToSendDTO)
+                .toList();
+    }
+
+    @GetMapping("/search")
+    public Collection<FilmSendDTO> getFilmsByTitleAndDirectorName(@ModelAttribute @Valid SearchRequest searchRequest) {
+        FilmSearchType filmSearchType = FilmSearchType.fromValue(searchRequest.by());
+        return filmService.getFilmsByTitleAndDirectorName(searchRequest.query(), filmSearchType)
                 .stream()
                 .map(FilmMapper::mapToSendDTO)
                 .toList();

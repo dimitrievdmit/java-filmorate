@@ -3,10 +3,11 @@ package ru.yandex.practicum.filmorate.dal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import ru.yandex.practicum.filmorate.exception.InternalServerException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ public class BaseDBRepository<T> {
         Map<String, Object> params = Map.of("id", id);
         int rowsDeleted = jdbc.update(query, params);
         if (rowsDeleted == 0) {
-            throw new InternalServerException("Не удалось удалить данные");
+            throw new NotFoundException("Не удалось удалить данные");
         }
     }
 
